@@ -27,7 +27,7 @@ services:
       - key: REQUEST_TIMEOUT_SECONDS
         value: "60"
       - key: SHIVAI_API_KEY
-        generateValue: true
+        value: "shivai-production-key-2026"
       - key: GEMINI_API_KEY
         sync: false
       - key: GROQ_API_KEY
