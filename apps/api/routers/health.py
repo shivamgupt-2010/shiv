@@ -44,6 +44,14 @@ async def provider_health(session: AsyncSession = Depends(get_db)) -> Dict[str, 
     }
 
 
+@router.post("/health/providers/reset")
+async def reset_provider_health(session: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
+    repo = ProviderRepository(session)
+    await repo.reset_all()
+    await session.commit()
+    return {"status": "ok", "message": "All provider health records reset to HEALTHY."}
+
+
 @router.get("/metrics")
 async def get_metrics(session: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     return await MetricsService.get_system_metrics(session)

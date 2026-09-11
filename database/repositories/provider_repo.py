@@ -8,6 +8,19 @@ from sqlalchemy import select
 from database.models.provider_health import ProviderHealthRecord
 
 
+import logging
+
+logger = logging.getLogger("shivai.provider_repo")
+
+
+def _to_utc(dt: Optional[datetime]) -> Optional[datetime]:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
 class ProviderRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -80,23 +93,39 @@ class ProviderRepository:
         res = await self.session.execute(stmt)
         return list(res.scalars().all())
 
+    async def reset_all(self) -> None:
+        records = await self.list_all()
+        for r in records:
+            r.status = "HEALTHY"
+            r.cooldown_until = None
+            r.consecutive_failures = 0
+            r.last_error_code = None
+            r.last_error_message = None
+        await self.session.flush()
+
     async def is_provider_available(self, provider: str) -> bool:
-        record = await self.get_or_create(provider)
-        now = datetime.now(timezone.utc)
+        try:
+            record = await self.get_or_create(provider)
+            now = datetime.now(timezone.utc)
+            cooldown = _to_utc(record.cooldown_until)
 
-        # If in cooldown, not available
-        if record.cooldown_until and record.cooldown_until > now:
-            return False
+            # If in cooldown, not available
+            if cooldown and cooldown > now:
+                return False
 
-        # If cooldown expired, allow probe
-        if record.cooldown_until and record.cooldown_until <= now:
-            if record.status in ("RATE_LIMITED", "DEGRADED"):
-                record.status = "HEALTHY"
-                record.cooldown_until = None
-                await self.session.flush()
-                return True
+            # If cooldown expired, allow probe
+            if cooldown and cooldown <= now:
+                if record.status in ("RATE_LIMITED", "DEGRADED"):
+                    record.status = "HEALTHY"
+                    record.cooldown_until = None
+                    await self.session.flush()
+                    return True
 
-        if record.status == "AUTH_FAILED":
-            return False
+            if record.status == "AUTH_FAILED":
+                return False
 
-        return True
+            return True
+        except Exception as exc:
+            logger.error(f"Error checking availability for provider '{provider}': {exc}")
+            return True
+

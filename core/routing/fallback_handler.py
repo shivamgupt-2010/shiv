@@ -78,18 +78,21 @@ class FallbackHandler:
                 )
 
                 # Record success & usage
-                await self.provider_repo.record_success(candidate.provider)
-                await self.usage_repo.record_usage(
-                    request_id=req_id,
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                    provider=candidate.provider,
-                    model=candidate.model,
-                    input_tokens=response.usage.input_tokens,
-                    output_tokens=response.usage.output_tokens,
-                    latency_ms=response.latency_ms,
-                    status="success",
-                )
+                try:
+                    await self.provider_repo.record_success(candidate.provider)
+                    await self.usage_repo.record_usage(
+                        request_id=req_id,
+                        user_id=user_id,
+                        conversation_id=conversation_id,
+                        provider=candidate.provider,
+                        model=candidate.model,
+                        input_tokens=response.usage.input_tokens,
+                        output_tokens=response.usage.output_tokens,
+                        latency_ms=response.latency_ms,
+                        status="success",
+                    )
+                except Exception as db_exc:
+                    logger.warning(f"[{req_id}] DB recording error on success: {db_exc}")
                 return response
 
             except Exception as exc:
@@ -109,24 +112,27 @@ class FallbackHandler:
                 elif normalized.category == ErrorCategory.AUTH_ERROR:
                     cooldown = 3600  # 1 hour cooldown for auth failure
 
-                await self.provider_repo.record_failure(
-                    provider=candidate.provider,
-                    error_category=normalized.category.value,
-                    error_message=normalized.message,
-                    cooldown_seconds=cooldown,
-                )
-                await self.usage_repo.record_usage(
-                    request_id=req_id,
-                    user_id=user_id,
-                    conversation_id=conversation_id,
-                    provider=candidate.provider,
-                    model=candidate.model,
-                    input_tokens=0,
-                    output_tokens=0,
-                    latency_ms=0.0,
-                    status="fallback",
-                    error_category=normalized.category.value,
-                )
+                try:
+                    await self.provider_repo.record_failure(
+                        provider=candidate.provider,
+                        error_category=normalized.category.value,
+                        error_message=normalized.message,
+                        cooldown_seconds=cooldown,
+                    )
+                    await self.usage_repo.record_usage(
+                        request_id=req_id,
+                        user_id=user_id,
+                        conversation_id=conversation_id,
+                        provider=candidate.provider,
+                        model=candidate.model,
+                        input_tokens=0,
+                        output_tokens=0,
+                        latency_ms=0.0,
+                        status="fallback",
+                        error_category=normalized.category.value,
+                    )
+                except Exception as db_exc:
+                    logger.warning(f"[{req_id}] DB recording error on failure: {db_exc}")
 
                 # Continue loop to next candidate
                 continue
@@ -181,7 +187,10 @@ class FallbackHandler:
                     yield chunk
 
                 # If completed without exception, record success
-                await self.provider_repo.record_success(candidate.provider)
+                try:
+                    await self.provider_repo.record_success(candidate.provider)
+                except Exception as db_exc:
+                    logger.warning(f"[{req_id}] DB recording error on stream success: {db_exc}")
                 return
 
             except Exception as exc:
@@ -192,12 +201,15 @@ class FallbackHandler:
                     f"[{req_id}] Streaming provider '{candidate.provider}' failed: {normalized.message}"
                 )
 
-                await self.provider_repo.record_failure(
-                    provider=candidate.provider,
-                    error_category=normalized.category.value,
-                    error_message=normalized.message,
-                    cooldown_seconds=60,
-                )
+                try:
+                    await self.provider_repo.record_failure(
+                        provider=candidate.provider,
+                        error_category=normalized.category.value,
+                        error_message=normalized.message,
+                        cooldown_seconds=60,
+                    )
+                except Exception as db_exc:
+                    logger.warning(f"[{req_id}] DB recording error on stream failure: {db_exc}")
 
                 # If tokens were already emitted to client, we cannot cleanly restart the stream
                 if chunks_emitted > 0:

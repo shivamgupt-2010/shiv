@@ -22,12 +22,14 @@ class AgentManager:
 
     def _register_defaults(self):
         self.register("general", GeneralAgent())
+        self.register("chat", GeneralAgent())
         self.register("coding", CodingAgent())
         self.register("research", ResearchAgent())
         self.register("planning", PlanningAgent())
         self.register("math", MathAgent())
         self.register("vision", VisionAgent())
         self.register("system", SystemAgent())
+        self.register("study", ResearchAgent())
 
     def register(self, key: str, agent: BaseAgent) -> None:
         self._agents[key.lower()] = agent

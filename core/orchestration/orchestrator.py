@@ -185,11 +185,14 @@ class ShivAIOrchestrator:
         # Save assistant message upon stream completion
         assembled_text = "".join(full_content)
         if assembled_text:
-            await self.conv_repo.add_message(
-                conversation_id=conversation.id,
-                role="assistant",
-                content=assembled_text,
-                model_provider=selected_provider,
-                model_name=selected_model,
-            )
-            await self.session.commit()
+            try:
+                await self.conv_repo.add_message(
+                    conversation_id=conversation.id,
+                    role="assistant",
+                    content=assembled_text,
+                    model_provider=selected_provider,
+                    model_name=selected_model,
+                )
+                await self.session.commit()
+            except Exception as db_exc:
+                logger.warning(f"Failed to record streamed message to DB: {db_exc}")

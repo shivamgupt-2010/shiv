@@ -87,7 +87,10 @@ class ModelRouter:
                 continue
 
             # Check health & cooldown in database
-            is_available = await provider_repo.is_provider_available(model.provider)
+            try:
+                is_available = await provider_repo.is_provider_available(model.provider)
+            except Exception:
+                is_available = True
             if not is_available:
                 continue
 

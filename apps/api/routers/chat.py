@@ -45,16 +45,27 @@ async def chat_completion(
         "temperature": req.temperature,
         "max_tokens": req.max_tokens,
     }
-    return await orchestrator.process_chat(
-        user_message=req.message,
-        user_id=user_id,
-        conversation_id=req.conversation_id,
-        agent_name=req.agent,
-        custom_instructions=req.custom_instructions,
-        preferred_provider=req.preferred_provider,
-        options=options,
-        request_id=request_id,
-    )
+    try:
+        return await orchestrator.process_chat(
+            user_message=req.message,
+            user_id=user_id,
+            conversation_id=req.conversation_id,
+            agent_name=req.agent,
+            custom_instructions=req.custom_instructions,
+            preferred_provider=req.preferred_provider,
+            options=options,
+            request_id=request_id,
+        )
+    except ShivAIServiceException:
+        raise
+    except Exception as e:
+        import logging
+        logging.getLogger("shivai.chat").exception(f"[{request_id}] Chat completion error: {e}")
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail={"error": {"code": "CHAT_ERROR", "message": f"ShivAI execution error: {str(e)}", "request_id": request_id}},
+        )
 
 
 @router.post(

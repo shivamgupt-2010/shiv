@@ -86,14 +86,15 @@ async def handle_http_exception(request: Request, exc: HTTPException):
 
 @app.exception_handler(Exception)
 async def handle_generic_exception(request: Request, exc: Exception):
+    import logging
     req_id = getattr(request.state, "request_id", "req-unknown")
-    # Redact raw exception details from production user responses
+    logging.getLogger("shivai.api").exception(f"[{req_id}] Unhandled server exception on {request.url.path}: {exc}")
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
             "error": {
                 "code": "INTERNAL_SERVER_ERROR",
-                "message": "An unexpected error occurred within ShivAI. Our engineers have been notified.",
+                "message": f"ShivAI server error: {str(exc)}",
                 "request_id": req_id,
             }
         },

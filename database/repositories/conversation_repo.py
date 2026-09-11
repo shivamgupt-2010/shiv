@@ -23,16 +23,25 @@ class ConversationRepository:
         
         # Ensure user exists for foreign key integrity
         from database.models.user import User
+        from database.models.base import generate_uuid
         user_stmt = select(User).where(User.id == user_id)
         user_res = await self.session.execute(user_stmt)
         if not user_res.scalar_one_or_none():
-            safe_username = f"user_{user_id[:8]}" if len(user_id) >= 8 else f"user_{user_id}"
+            safe_username = f"usr_{user_id}"[:99]
+            u_check = await self.session.execute(select(User).where(User.username == safe_username))
+            if u_check.scalar_one_or_none():
+                safe_username = f"usr_{user_id}_{generate_uuid()[:6]}"[:99]
             new_u = User(id=user_id, username=safe_username)
             self.session.add(new_u)
-            await self.session.flush()
+            try:
+                await self.session.flush()
+            except Exception:
+                pass
 
-        # Create new
+        # Create new conversation with requested conversation_id if provided
+        target_id = conversation_id if (conversation_id and len(conversation_id) <= 36) else generate_uuid()
         new_conv = Conversation(
+            id=target_id,
             user_id=user_id,
             title=title or "New Conversation",
         )
