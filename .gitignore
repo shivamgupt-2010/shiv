@@ -48,8 +48,9 @@ htmlcov/
 .idea/
 *.swp
 
-# Model weights
-models/
+# Model weights (only root models/ directory)
+/models/
+!database/models/
 *.gguf
 *.bin
 *.pt
