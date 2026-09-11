@@ -1,4 +1,6 @@
-# Set up an unprivileged user (required by Hugging Face Spaces)
+FROM python:3.11-slim
+
+# Set up an unprivileged user
 RUN useradd -m -u 1000 user
 ENV HOME=/home/user \
     PATH=/home/user/.local/bin:$PATH
@@ -22,8 +24,8 @@ USER user
 
 EXPOSE 7860
 EXPOSE 8000
+EXPOSE 10000
 
 ENV PYTHONUNBUFFERED=1
-ENV PORT=7860
 
-CMD ["sh", "-c", "uvicorn apps.api.main:app --host 0.0.0.0 --port ${PORT:-7860}"]
+CMD ["sh", "-c", "uvicorn apps.api.main:app --host 0.0.0.0 --port ${PORT:-10000}"]
