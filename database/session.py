@@ -1,12 +1,21 @@
-"""
-Database session management with SQLAlchemy 2.0 Async Engine.
-"""
+import os
+from pathlib import Path
 from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy import select
 from config.settings import settings
 from database.models import Base, User
 
+
+# Ensure target SQLite directory exists and is writable
+if "sqlite" in settings.DATABASE_URL:
+    db_path_str = settings.DATABASE_URL.split(":///")[-1]
+    if db_path_str and not db_path_str.startswith(":memory:"):
+        try:
+            db_path = Path(db_path_str).resolve()
+            db_path.parent.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
 
 # Initialize async engine
 engine = create_async_engine(

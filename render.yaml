@@ -13,7 +13,7 @@ services:
       - key: SHIVAI_ALLOWED_ORIGINS
         value: "*"
       - key: DATABASE_URL
-        value: sqlite+aiosqlite:///./shivai.db
+        value: sqlite+aiosqlite:////home/user/app/shivai.db
       - key: LOG_LEVEL
         value: INFO
       - key: LOG_FORMAT

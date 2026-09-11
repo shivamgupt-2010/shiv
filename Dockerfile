@@ -20,6 +20,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application source with proper ownership
 COPY --chown=user:user . .
 
+# Ensure entire home and app directory is writable by user for SQLite database creation
+RUN chown -R user:user /home/user && chmod -R 775 /home/user
+
 USER user
 
 EXPOSE 7860
