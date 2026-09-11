@@ -1,0 +1,235 @@
+# ShivAI Declarative Model Configuration Registry
+# Configures the pool of models available to the Model Router.
+# The Model Router ranks models dynamically using capability scoring, priority, and real-time health.
+
+models:
+  # --------------------------------------------------------------------------
+  # Provider 1: OpenAI
+  # --------------------------------------------------------------------------
+  - id: openai_gpt4o
+    provider: openai
+    model: gpt-4o
+    priority: 95
+    capabilities:
+      reasoning: true
+      vision: true
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 128000
+    max_output_tokens: 4096
+    cost_tier: high
+    status: active
+
+  - id: openai_gpt4o_mini
+    provider: openai
+    model: gpt-4o-mini
+    priority: 85
+    capabilities:
+      reasoning: true
+      vision: true
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 128000
+    max_output_tokens: 4096
+    cost_tier: low
+    status: active
+
+  # --------------------------------------------------------------------------
+  # Provider 2: Anthropic
+  # --------------------------------------------------------------------------
+  - id: anthropic_claude35_sonnet
+    provider: anthropic
+    model: claude-3-5-sonnet-20241022
+    priority: 96
+    capabilities:
+      reasoning: true
+      vision: true
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 200000
+    max_output_tokens: 8192
+    cost_tier: high
+    status: active
+
+  - id: anthropic_claude35_haiku
+    provider: anthropic
+    model: claude-3-5-haiku-20241022
+    priority: 84
+    capabilities:
+      reasoning: true
+      vision: false
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 200000
+    max_output_tokens: 8192
+    cost_tier: low
+    status: active
+
+  # --------------------------------------------------------------------------
+  # Provider 3: Google Gemini
+  # --------------------------------------------------------------------------
+  - id: gemini_25_flash
+    provider: gemini
+    model: gemini-2.5-flash
+    priority: 95
+    capabilities:
+      reasoning: true
+      vision: true
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 1000000
+    max_output_tokens: 8192
+    cost_tier: low
+    status: active
+
+  - id: gemini_25_pro
+    provider: gemini
+    model: gemini-2.5-pro
+    priority: 94
+    capabilities:
+      reasoning: true
+      vision: true
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 1000000
+    max_output_tokens: 8192
+    cost_tier: medium
+    status: active
+
+  - id: gemini_flash_latest
+    provider: gemini
+    model: gemini-flash-latest
+    priority: 91
+    capabilities:
+      reasoning: true
+      vision: true
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 1000000
+    max_output_tokens: 8192
+    cost_tier: low
+    status: active
+
+  # --------------------------------------------------------------------------
+  # Provider 4: Groq (Ultra-low latency inference)
+  # --------------------------------------------------------------------------
+  - id: groq_gpt_oss_120b
+    provider: groq
+    model: openai/gpt-oss-120b
+    priority: 93
+    capabilities:
+      reasoning: true
+      vision: false
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 128000
+    max_output_tokens: 8192
+    cost_tier: low
+    status: active
+
+  - id: groq_qwen_27b
+    provider: groq
+    model: qwen/qwen3.8-27b
+    priority: 92
+    capabilities:
+      reasoning: true
+      vision: false
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 128000
+    max_output_tokens: 8192
+    cost_tier: low
+    status: active
+
+  # --------------------------------------------------------------------------
+  # Provider 5: DeepSeek
+  # --------------------------------------------------------------------------
+  - id: deepseek_chat
+    provider: deepseek
+    model: deepseek-chat
+    priority: 89
+    capabilities:
+      reasoning: true
+      vision: false
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 64000
+    max_output_tokens: 4096
+    cost_tier: low
+    status: active
+
+  - id: deepseek_reasoner
+    provider: deepseek
+    model: deepseek-reasoner
+    priority: 94
+    capabilities:
+      reasoning: true
+      vision: false
+      tools: false
+      streaming: true
+      coding: true
+    context_limit: 64000
+    max_output_tokens: 8192
+    cost_tier: medium
+    status: active
+
+  # --------------------------------------------------------------------------
+  # Provider 6: Mistral AI
+  # --------------------------------------------------------------------------
+  - id: mistral_large
+    provider: mistral
+    model: mistral-large-latest
+    priority: 87
+    capabilities:
+      reasoning: true
+      vision: false
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 128000
+    max_output_tokens: 4096
+    cost_tier: medium
+    status: active
+
+  - id: mistral_codestral
+    provider: mistral
+    model: codestral-latest
+    priority: 91
+    capabilities:
+      reasoning: true
+      vision: false
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 256000
+    max_output_tokens: 8192
+    cost_tier: low
+    status: active
+
+  # --------------------------------------------------------------------------
+  # Provider 7: Generic OpenAI-Compatible (OpenRouter / Perplexity / Ollama)
+  # --------------------------------------------------------------------------
+  - id: generic_openai_default
+    provider: generic_openai
+    model: default
+    priority: 70
+    capabilities:
+      reasoning: true
+      vision: false
+      tools: true
+      streaming: true
+      coding: true
+    context_limit: 32000
+    max_output_tokens: 4096
+    cost_tier: low
+    status: active

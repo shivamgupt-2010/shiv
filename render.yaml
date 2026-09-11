@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: shivai-backend
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: SHIVAI_ENV
+        value: production
+      - key: SHIVAI_DEBUG
+        value: "false"
+      - key: SHIVAI_ALLOWED_ORIGINS
+        value: "*"
+      - key: DATABASE_URL
+        value: sqlite+aiosqlite:///./shivai.db
+      - key: LOG_LEVEL
+        value: INFO
+      - key: LOG_FORMAT
+        value: json
+      - key: REDACT_SECRETS
+        value: "true"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "120"
+      - key: RATE_LIMIT_BURST
+        value: "30"
+      - key: REQUEST_TIMEOUT_SECONDS
+        value: "60"
+      - key: SHIVAI_API_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
