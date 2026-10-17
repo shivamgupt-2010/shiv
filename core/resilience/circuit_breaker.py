@@ -102,6 +102,14 @@ class CircuitBreaker:
                 self.state = CircuitState.OPEN
                 self.last_state_change = now
 
+    async def reset(self) -> None:
+        """Manually resets the circuit breaker to CLOSED state."""
+        async with self._lock:
+            self.state = CircuitState.CLOSED
+            self.failure_count = 0
+            self.last_failure_time = 0.0
+            self.last_state_change = time.time()
+
     def get_time_until_recovery(self) -> float:
         """Calculates seconds remaining before an OPEN circuit enters HALF_OPEN probe state."""
         if self.state != CircuitState.OPEN:

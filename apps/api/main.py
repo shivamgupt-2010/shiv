@@ -30,6 +30,7 @@ from apps.api.routers.v2 import (
     v2_tools_router,
     v2_agents_router,
     v2_documents_router,
+    v2_admin_router,
 )
 from core.resilience.key_pool import key_pool_manager
 
@@ -133,3 +134,4 @@ app.include_router(v2_research_router)
 app.include_router(v2_tools_router)
 app.include_router(v2_agents_router)
 app.include_router(v2_documents_router)
+app.include_router(v2_admin_router)

@@ -233,3 +233,46 @@ def test_shiv_auth_jwt_verification():
     verified = verify_shiv_token(token)
     assert verified["sub"] == "user_26d20fcf"
     assert verified["email"] == "user@shiv.platform"
+
+
+# ---------------------------------------------------------------------------
+# 8. Admin Dashboard & Governance API Tests
+# ---------------------------------------------------------------------------
+@pytest.mark.asyncio
+async def test_admin_dashboard_html(async_client):
+    res = await async_client.get("/admin")
+    assert res.status_code == 200
+    assert "SHIV AI V2.0" in res.text
+    assert "Admin Command Center" in res.text
+
+
+@pytest.mark.asyncio
+async def test_admin_config_api(async_client):
+    # GET config
+    res = await async_client.get(
+        "/v2/admin/config",
+        headers={"Authorization": "Bearer shivai-production-key-2026"}
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "success"
+    assert "models" in data
+    assert "circuit_breakers" in data
+    assert "settings" in data
+
+    # POST config
+    update_res = await async_client.post(
+        "/v2/admin/config",
+        headers={"Authorization": "Bearer shivai-production-key-2026"},
+        json={"router_default_mode": "fastest", "circuit_breaker_threshold": 6}
+    )
+    assert update_res.status_code == 200
+    assert update_res.json()["active_settings"]["router_default_mode"] == "fastest"
+
+    # Reset circuit breaker
+    cb_res = await async_client.post(
+        "/v2/admin/circuit-breaker/reset",
+        headers={"Authorization": "Bearer shivai-production-key-2026"}
+    )
+    assert cb_res.status_code == 200
+    assert "reset" in cb_res.json()["message"]
