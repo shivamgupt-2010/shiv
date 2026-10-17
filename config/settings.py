@@ -35,14 +35,29 @@ class Settings(BaseSettings):
     def effective_port(self) -> int:
         return self.PORT or self.SHIVAI_PORT
 
-    # Database
+    # Database (Local SQLite cache & operational state)
     DATABASE_URL: str = "sqlite+aiosqlite:///./shivai.db"
+
+    # SHIV Central Database & Auth Integration (Render live instance)
+    SHIV_DB_URL: str = "https://shiv-database.onrender.com"
+    SHIV_DB_PROJECT_ID: str = "26d20fcf-5c34-4e6d-ad80-bb89f593e2f5"
+    SHIV_DB_API_KEY: str = "26d20fcf-5c34-4e6d-ad80-bb89f593e2f5"
+    SHIV_AUTH_JWT_SECRET: str = "shiv-platform-super-secret-jwt-key-for-local-dev-12345"
+    SHIV_AUTH_JWT_ALGORITHM: str = "HS256"
 
     # Security & Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
     RATE_LIMIT_BURST: int = 15
     REQUEST_TIMEOUT_SECONDS: float = 60.0
+    STREAM_TIMEOUT_SECONDS: float = 120.0
 
+    # V2 Router & Resilience Configuration
+    ROUTER_DEFAULT_MODE: str = "auto"
+    ROUTER_MAX_RETRIES: int = 3
+    RETRY_BASE_DELAY_SECONDS: float = 0.5
+    RETRY_MAX_DELAY_SECONDS: float = 5.0
+    CIRCUIT_BREAKER_THRESHOLD: int = 4
+    CIRCUIT_BREAKER_RECOVERY_SECONDS: float = 30.0
     # Provider API Keys (Secrets - Loaded safely from env with robust defaults)
     OPENAI_API_KEY: Optional[str] = Field(default=None)
     ANTHROPIC_API_KEY: Optional[str] = Field(default=None)

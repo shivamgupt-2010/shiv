@@ -41,6 +41,16 @@ class ProviderError(Exception):
         self.raw_error = raw_error
         self.retry_after = retry_after
 
+    @property
+    def is_retryable(self) -> bool:
+        """Determines if the error is temporary and eligible for retry."""
+        return self.category in {
+            ErrorCategory.RATE_LIMIT,
+            ErrorCategory.TIMEOUT,
+            ErrorCategory.SERVER_ERROR,
+            ErrorCategory.NETWORK_ERROR,
+        } or (self.status_code is not None and self.status_code in {429, 500, 502, 503, 504})
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "category": self.category.value,
@@ -49,4 +59,5 @@ class ProviderError(Exception):
             "model": self.model,
             "status_code": self.status_code,
             "retry_after": self.retry_after,
+            "is_retryable": self.is_retryable,
         }

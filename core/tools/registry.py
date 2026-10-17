@@ -4,7 +4,7 @@ Tool Registry and Execution Manager.
 from typing import Dict, List, Optional, Any
 from core.tools.base import Tool, ToolDefinition
 from core.tools.permissions import ToolPermissionGate, ToolPermissionError
-from core.tools.builtin_tools import CalculatorTool, DateTimeTool, WebSearchTool
+from core.tools.builtin_tools import CalculatorTool, DateTimeTool, WebSearchTool, SandboxedPythonTool
 
 
 class ToolRegistry:
@@ -16,6 +16,7 @@ class ToolRegistry:
         self.register(CalculatorTool())
         self.register(DateTimeTool())
         self.register(WebSearchTool())
+        self.register(SandboxedPythonTool())
 
     def register(self, tool: Tool) -> None:
         self._tools[tool.name] = tool

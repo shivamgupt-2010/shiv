@@ -1,100 +1,192 @@
 """
-Intelligent Model Router.
+ShivAI Intelligent Model Router.
 Scores, filters, and ranks models dynamically based on task requirements,
-capabilities, provider credentials, and real-time health.
+capabilities, provider credentials, real-time circuit-breaker health, and routing mode.
 """
-from typing import List, Dict, Any, Optional
-import yaml
+from typing import List, Dict, Any, Optional, Union
 from pathlib import Path
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from config.settings import settings
 from providers.registry import provider_registry
+from core.routing.registry import model_registry, ModelInfo, ModelCapabilities
+from core.routing.scoring import RoutingMode, ScoringEngine
+from core.resilience.circuit_breaker import circuit_breaker_registry, CircuitState
 from database.repositories.provider_repo import ProviderRepository
 
-
-class ModelCapabilities(BaseModel):
-    reasoning: bool = True
-    vision: bool = False
-    tools: bool = True
-    streaming: bool = True
-    coding: bool = True
+# Backward compatibility alias
+ModelConfig = ModelInfo
 
 
-class ModelConfig(BaseModel):
-    id: str
-    provider: str
-    model: str
-    priority: int = 50
-    capabilities: ModelCapabilities = Field(default_factory=ModelCapabilities)
-    context_limit: int = 32000
-    max_output_tokens: int = 4096
-    cost_tier: str = "low"
-    status: str = "active"
+class RoutingDecision(BaseModel):
+    selected_model: ModelInfo
+    ranked_candidates: List[ModelInfo]
+    mode: RoutingMode
+    routing_reason: str
+    scores: Dict[str, float] = Field(default_factory=dict)
 
 
 class ModelRouter:
     """Intelligent scoring and selection engine for AI models."""
 
     def __init__(self, config_path: Optional[Path] = None):
-        self.config_path = config_path or settings.MODELS_CONFIG_PATH
-        self._models: List[ModelConfig] = []
-        self.load_models()
+        self.registry = model_registry
+        if config_path:
+            self.registry.config_path = config_path
+            self.registry.load()
 
-    def load_models(self) -> None:
-        """Loads model configurations from YAML file."""
-        if not self.config_path.exists():
-            self._models = []
-            return
+    def list_all_models(self) -> List[ModelInfo]:
+        return self.registry.list_all(enabled_only=False)
 
-        with open(self.config_path, "r", encoding="utf-8") as f:
-            raw_data = yaml.safe_load(f) or {}
-
-        model_list = raw_data.get("models", [])
-        self._models = [ModelConfig(**m) for m in model_list]
-
-    def list_all_models(self) -> List[ModelConfig]:
-        return list(self._models)
-
-    async def get_ranked_candidates(
+    async def route_request(
         self,
-        session: AsyncSession,
+        mode: Union[str, RoutingMode] = RoutingMode.AUTO,
+        specific_model_name: Optional[str] = None,
         required_capabilities: Optional[Dict[str, bool]] = None,
         min_context_limit: int = 0,
         preferred_provider: Optional[str] = None,
-    ) -> List[ModelConfig]:
+        session: Optional[AsyncSession] = None,
+    ) -> RoutingDecision:
+        """
+        V2 Intelligent Routing Engine:
+        Evaluates models and returns the optimal selected model along with ranked fallbacks.
+        """
+        if isinstance(mode, str):
+            try:
+                mode = RoutingMode(mode.lower())
+            except ValueError:
+                mode = RoutingMode.AUTO
+
+        # 1. SPECIFIC Mode: Explicit user model selection
+        if mode == RoutingMode.SPECIFIC or specific_model_name:
+            target_name = specific_model_name or ""
+            target = self.registry.get(target_name)
+            if not target:
+                from providers.errors import ProviderError, ErrorCategory
+                raise ProviderError(
+                    category=ErrorCategory.MODEL_UNAVAILABLE,
+                    message=f"Requested model '{target_name}' is not registered in ShivAI.",
+                    provider="unknown",
+                    model=target_name,
+                    status_code=404,
+                )
+
+            if not target.enabled:
+                from providers.errors import ProviderError, ErrorCategory
+                raise ProviderError(
+                    category=ErrorCategory.MODEL_UNAVAILABLE,
+                    message=f"Requested model '{target_name}' is currently disabled in ShivAI configuration.",
+                    provider=target.provider,
+                    model=target_name,
+                    status_code=400,
+                )
+
+            # Check if provider is configured
+            if target.provider not in provider_registry.list_configured():
+                from providers.errors import ProviderError, ErrorCategory
+                raise ProviderError(
+                    category=ErrorCategory.AUTH_ERROR,
+                    message=f"No API key configured for provider '{target.provider}' required by model '{target_name}'.",
+                    provider=target.provider,
+                    model=target_name,
+                    status_code=401,
+                )
+
+            # Check circuit breaker
+            breaker = await circuit_breaker_registry.get_or_create(target.provider)
+            if not await breaker.can_execute():
+                from providers.errors import ProviderError, ErrorCategory
+                raise ProviderError(
+                    category=ErrorCategory.MODEL_UNAVAILABLE,
+                    message=f"Provider '{target.provider}' for model '{target_name}' is temporarily unavailable (circuit breaker OPEN).",
+                    provider=target.provider,
+                    model=target_name,
+                    status_code=503,
+                )
+
+            return RoutingDecision(
+                selected_model=target,
+                ranked_candidates=[target],
+                mode=RoutingMode.SPECIFIC,
+                routing_reason=f"Explicitly requested model: {target.display_name}",
+                scores={target.model_id: 100.0},
+            )
+
+        # 2. Dynamic Ranked Candidate Selection (AUTO, FASTEST, QUALITY, BALANCED)
+        candidates = await self.get_ranked_candidates(
+            session=session,
+            required_capabilities=required_capabilities,
+            min_context_limit=min_context_limit,
+            preferred_provider=preferred_provider,
+            mode=mode,
+        )
+
+        if not candidates:
+            from providers.errors import ProviderError, ErrorCategory
+            raise ProviderError(
+                category=ErrorCategory.MODEL_UNAVAILABLE,
+                message="No eligible AI models are currently available matching required capabilities and health criteria.",
+                provider="router",
+                status_code=503,
+            )
+
+        return RoutingDecision(
+            selected_model=candidates[0],
+            ranked_candidates=candidates,
+            mode=mode,
+            routing_reason=f"Selected highest scoring model under '{mode.value}' mode: {candidates[0].display_name}",
+        )
+
+    async def get_ranked_candidates(
+        self,
+        session: Optional[AsyncSession] = None,
+        required_capabilities: Optional[Dict[str, bool]] = None,
+        min_context_limit: int = 0,
+        preferred_provider: Optional[str] = None,
+        mode: Union[str, RoutingMode] = RoutingMode.AUTO,
+    ) -> List[ModelInfo]:
         """
         Ranks models dynamically:
-        1. Filters out unconfigured providers (no API key).
-        2. Filters out inactive models.
-        3. Filters out providers currently in cooldown, quota exhausted, or auth failed.
-        4. Filters by required capabilities (vision, tools, etc.).
-        5. Filters by context window size.
-        6. Scores and ranks surviving candidates.
+        1. Filters unconfigured providers (missing API keys).
+        2. Filters disabled models.
+        3. Filters tripped circuit breakers (OPEN).
+        4. Filters capability mismatches.
+        5. Filters context window constraints.
+        6. Computes deterministic score based on mode, speed, quality, cost, and health.
         """
-        provider_repo = ProviderRepository(session)
+        if isinstance(mode, str):
+            try:
+                mode = RoutingMode(mode.lower())
+            except ValueError:
+                mode = RoutingMode.AUTO
+
         configured_providers = set(provider_registry.list_configured())
         req_caps = required_capabilities or {}
+        candidates: List[ModelInfo] = []
+        candidate_scores: Dict[str, float] = {}
 
-        candidates: List[ModelConfig] = []
-
-        for model in self._models:
-            if model.status != "active":
-                continue
-
-            # Check if API key is present for provider
+        for model in self.registry.list_all(enabled_only=True):
+            # 1. API key existence
             if model.provider not in configured_providers:
                 continue
 
-            # Check health & cooldown in database
-            try:
-                is_available = await provider_repo.is_provider_available(model.provider)
-            except Exception:
-                is_available = True
-            if not is_available:
+            # 2. Circuit breaker check
+            breaker = await circuit_breaker_registry.get_or_create(model.provider)
+            if not await breaker.can_execute():
                 continue
 
-            # Capability filtering
+            # 3. DB Provider availability check (if DB session provided)
+            if session:
+                try:
+                    repo = ProviderRepository(session)
+                    is_avail = await repo.is_provider_available(model.provider)
+                    if not is_avail:
+                        continue
+                except Exception:
+                    pass
+
+            # 4. Capability filtering
             caps_dict = model.capabilities.model_dump()
             incompatible = False
             for cap_name, cap_required in req_caps.items():
@@ -104,28 +196,28 @@ class ModelRouter:
             if incompatible:
                 continue
 
-            # Context limit filtering
-            if model.context_limit < min_context_limit:
+            # 5. Context limit filtering
+            if model.context_window < min_context_limit:
                 continue
 
-            candidates.append(model)
+            # 6. Calculate deterministic score
+            score = ScoringEngine.calculate_score(
+                model=model,
+                mode=mode,
+                circuit_state=breaker.state,
+                failure_count=breaker.failure_count,
+                required_capabilities=req_caps,
+                preferred_provider=preferred_provider,
+            )
 
-        # Score candidates
-        def score_model(m: ModelConfig) -> float:
-            score = float(m.priority)
-            if preferred_provider and m.provider == preferred_provider:
-                score += 30.0
-            if req_caps.get("reasoning") and m.capabilities.reasoning:
-                score += 10.0
-            if req_caps.get("coding") and m.capabilities.coding:
-                score += 5.0
-            # Small bonus for low-cost models when all else is equal
-            if m.cost_tier == "low":
-                score += 2.0
-            return score
+            if score > -500:  # Not disqualified
+                candidates.append(model)
+                candidate_scores[model.model_id] = score
 
-        candidates.sort(key=score_model, reverse=True)
+        # Sort descending by calculated score
+        candidates.sort(key=lambda m: candidate_scores.get(m.model_id, 0.0), reverse=True)
         return candidates
 
 
+# Global Model Router Instance
 model_router = ModelRouter()

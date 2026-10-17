@@ -5,6 +5,7 @@ from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.session import get_db
 from security.auth import get_current_user_id
+from security.shiv_auth import get_current_user_context, UserContext
 from security.rate_limiter import rate_limit_middleware_check
 
 

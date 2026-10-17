@@ -89,14 +89,18 @@ class DateTimeTool(Tool):
         }
 
 
+from core.research.search_engine import search_engine
+from core.tools.sandbox import code_sandbox
+
+
 class WebSearchTool(Tool):
-    """Web search lookup tool."""
+    """Real-time web search lookup tool using DuckDuckGo."""
 
     def __init__(self):
         super().__init__(
             ToolDefinition(
                 name="web_search",
-                description="Searches public online sources for up-to-date information.",
+                description="Searches public online sources for up-to-date information, facts, and documentation.",
                 required_permission="web_search",
                 parameters=[
                     ToolParameter(
@@ -109,9 +113,41 @@ class WebSearchTool(Tool):
         )
 
     async def run(self, query: str = "", **kwargs) -> Dict[str, Any]:
-        # Clean production query response
+        results = await search_engine.search(query, max_results=3)
         return {
             "success": True,
             "query": query,
-            "summary": f"Search results for '{query}': ShivAI verified current context and knowledge base.",
+            "results": [r.to_dict() for r in results],
+            "count": len(results),
+        }
+
+
+class SandboxedPythonTool(Tool):
+    """Executes Python code safely in a restricted subprocess with timeout limits."""
+
+    def __init__(self):
+        super().__init__(
+            ToolDefinition(
+                name="sandboxed_python",
+                description="Executes a Python script safely in an isolated ephemeral sandbox and captures output.",
+                required_permission="code_execution",
+                parameters=[
+                    ToolParameter(
+                        name="code",
+                        type="string",
+                        description="Python code to execute",
+                    )
+                ],
+            )
+        )
+
+    async def run(self, code: str = "", **kwargs) -> Dict[str, Any]:
+        res = await code_sandbox.execute_python(code=code)
+        return {
+            "success": res.success,
+            "stdout": res.stdout,
+            "stderr": res.stderr,
+            "exit_code": res.exit_code,
+            "timed_out": res.timed_out,
+            "execution_time_ms": res.execution_time_ms,
         }

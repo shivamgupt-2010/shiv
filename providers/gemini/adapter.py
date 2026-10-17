@@ -72,6 +72,16 @@ class GeminiProvider(AIProvider):
             generation_config["temperature"] = options["temperature"]
         if "max_tokens" in options:
             generation_config["maxOutputTokens"] = options["max_tokens"]
+        if "response_format" in options and options["response_format"]:
+            rf = options["response_format"]
+            rf_type = rf.get("type") if isinstance(rf, dict) else None
+            if rf_type in ("json_object", "json_schema"):
+                generation_config["responseMimeType"] = "application/json"
+            if isinstance(rf, dict) and "schema" in rf:
+                generation_config["responseSchema"] = rf["schema"]
+            elif isinstance(rf, dict) and "json_schema" in rf and "schema" in rf["json_schema"]:
+                generation_config["responseSchema"] = rf["json_schema"]["schema"]
+
         if generation_config:
             payload["generationConfig"] = generation_config
 

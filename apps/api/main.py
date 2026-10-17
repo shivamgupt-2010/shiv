@@ -20,11 +20,26 @@ from apps.api.routers import (
 from core.routing.fallback_handler import ShivAIServiceException
 
 
+from apps.api.routers.v2 import (
+    v2_chat_router,
+    v2_models_router,
+    v2_health_router,
+    v2_memory_router,
+    v2_voice_router,
+    v2_research_router,
+    v2_tools_router,
+    v2_agents_router,
+    v2_documents_router,
+)
+from core.resilience.key_pool import key_pool_manager
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     configure_logging(log_level=settings.LOG_LEVEL, log_format=settings.LOG_FORMAT)
     await init_db()
+    await key_pool_manager.initialize_from_settings()
     yield
     # Shutdown
 
@@ -101,9 +116,20 @@ async def handle_generic_exception(request: Request, exc: Exception):
     )
 
 
-# Include Routers
+# Include V1 Routers (Preserved for full backward compatibility)
 app.include_router(chat_router)
 app.include_router(conversations_router)
 app.include_router(memory_router)
 app.include_router(models_router)
 app.include_router(health_router)
+
+# Include V2 Routers
+app.include_router(v2_chat_router)
+app.include_router(v2_models_router)
+app.include_router(v2_health_router)
+app.include_router(v2_memory_router)
+app.include_router(v2_voice_router)
+app.include_router(v2_research_router)
+app.include_router(v2_tools_router)
+app.include_router(v2_agents_router)
+app.include_router(v2_documents_router)

@@ -170,6 +170,8 @@ class BaseOpenAICompatibleProvider(AIProvider):
             payload["temperature"] = options["temperature"]
         if "max_tokens" in options:
             payload["max_tokens"] = options["max_tokens"]
+        if "response_format" in options and options["response_format"]:
+            payload["response_format"] = options["response_format"]
 
         start_time = time.perf_counter()
         try:
