@@ -276,3 +276,11 @@ async def test_admin_config_api(async_client):
     )
     assert cb_res.status_code == 200
     assert "reset" in cb_res.json()["message"]
+
+
+@pytest.mark.asyncio
+async def test_application_lifespan_startup():
+    """Verifies that the entire FastAPI application lifespan starts up cleanly without crashing."""
+    from apps.api.main import app
+    async with app.router.lifespan_context(app):
+        pass

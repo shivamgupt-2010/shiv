@@ -7,19 +7,40 @@ from config.settings import settings
 from database.models import Base, User
 
 
-# Ensure target SQLite directory exists and is writable
-if "sqlite" in settings.DATABASE_URL:
-    db_path_str = settings.DATABASE_URL.split(":///")[-1]
-    if db_path_str and not db_path_str.startswith(":memory:"):
-        try:
-            db_path = Path(db_path_str).resolve()
-            db_path.parent.mkdir(parents=True, exist_ok=True)
-        except Exception:
-            pass
+import tempfile
+import logging
+
+logger = logging.getLogger("shivai.database")
+
+
+def _resolve_safe_database_url(raw_url: str) -> str:
+    """Ensures SQLite target directory exists and is writable, falling back to tempdir or memory."""
+    if "sqlite" in raw_url and ":memory:" not in raw_url:
+        db_path_str = raw_url.split(":///")[-1]
+        if db_path_str:
+            try:
+                db_path = Path(db_path_str).resolve()
+                db_path.parent.mkdir(parents=True, exist_ok=True)
+                # Test write capability
+                test_marker = db_path.parent / ".perm_check"
+                test_marker.touch(exist_ok=True)
+                test_marker.unlink(missing_ok=True)
+                return raw_url
+            except Exception as e:
+                safe_tmp = Path(tempfile.gettempdir()) / "shivai.db"
+                logger.warning(
+                    f"Configured SQLite path '{db_path_str}' is not writable ({e}). "
+                    f"Falling back to safe temp path: '{safe_tmp}'."
+                )
+                return f"sqlite+aiosqlite:///{safe_tmp.as_posix()}"
+    return raw_url
+
+
+effective_db_url = _resolve_safe_database_url(settings.DATABASE_URL)
 
 # Initialize async engine
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    effective_db_url,
     echo=settings.SHIVAI_DEBUG,
     future=True,
 )

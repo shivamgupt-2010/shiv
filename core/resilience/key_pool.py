@@ -9,6 +9,7 @@ import asyncio
 import logging
 from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
+from config.settings import settings
 
 logger = logging.getLogger("shivai.resilience.key_pool")
 
