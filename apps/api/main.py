@@ -3,7 +3,7 @@ ShivAI FastAPI Main Application Entry Point.
 """
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from config.settings import settings
 from monitoring.logging import configure_logging
@@ -48,11 +48,16 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="ShivAI Core Backend",
     description="Resilient, Multi-Model Independent AI Engine powered by dynamic provider rotation and fallback.",
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
 )
+
+
+@app.get("/", include_in_schema=False)
+async def root_redirect():
+    return RedirectResponse(url="/admin")
 
 # 1. Security Headers
 app.add_middleware(SecurityHeadersMiddleware)
