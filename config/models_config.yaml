@@ -233,3 +233,58 @@ models:
     max_output_tokens: 4096
     cost_tier: low
     status: active
+
+  # --------------------------------------------------------------------------
+  # Provider 8: Free Multimodal Media Generation (Zero GPU, Serverless)
+  # --------------------------------------------------------------------------
+  - id: flux_schnell_free
+    provider: pollinations
+    model: flux
+    display_name: "FLUX.1 Schnell (Free Image)"
+    priority: 95
+    capabilities:
+      image_generation: true
+      reasoning: false
+      vision: false
+      tools: false
+      streaming: false
+      coding: false
+    context_limit: 1024
+    max_output_tokens: 1024
+    cost_tier: free
+    status: active
+
+  - id: flux_video_free
+    provider: pollinations
+    model: flux-video
+    display_name: "FLUX Video (Free Short Video)"
+    priority: 90
+    capabilities:
+      video_generation: true
+      reasoning: false
+      vision: false
+      tools: false
+      streaming: false
+      coding: false
+    context_limit: 1024
+    max_output_tokens: 1024
+    cost_tier: free
+    status: active
+
+  - id: edge_neural_tts_free
+    provider: microsoft
+    model: edge-tts
+    display_name: "Microsoft Edge Neural Voice (Free TTS)"
+    priority: 98
+    capabilities:
+      audio_generation: true
+      reasoning: false
+      vision: false
+      tools: false
+      streaming: true
+      coding: false
+    context_limit: 4096
+    max_output_tokens: 4096
+    cost_tier: free
+    status: active
+

@@ -92,7 +92,8 @@ async def get_current_user_context(
             project_key,
             "shivai-production-key-2026",
             "shivai-test-client-key",
-            "26d20fcf-5c34-4e6d-ad80-bb89f593e2f5",
+            "7d810bd0-f625-4856-a154-4e04aca955fc",
+            "shiv_sk_7VpCyHo_X0_Q74V2oX3UJgCQ28DASaccElh5NbJ8amU",
         }
         if token_candidate in valid_keys:
             return UserContext(

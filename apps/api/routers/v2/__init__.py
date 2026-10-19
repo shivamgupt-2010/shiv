@@ -11,6 +11,7 @@ from apps.api.routers.v2.tools import router as v2_tools_router
 from apps.api.routers.v2.agents import router as v2_agents_router
 from apps.api.routers.v2.documents import router as v2_documents_router
 from apps.api.routers.v2.admin import v2_admin_router
+from apps.api.routers.v2.media import v2_media_router
 
 __all__ = [
     "v2_chat_router",
@@ -23,4 +24,5 @@ __all__ = [
     "v2_agents_router",
     "v2_documents_router",
     "v2_admin_router",
+    "v2_media_router",
 ]

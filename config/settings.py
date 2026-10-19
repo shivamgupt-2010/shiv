@@ -40,8 +40,8 @@ class Settings(BaseSettings):
 
     # SHIV Central Database & Auth Integration (Render live instance)
     SHIV_DB_URL: str = "https://shiv-database.onrender.com"
-    SHIV_DB_PROJECT_ID: str = "26d20fcf-5c34-4e6d-ad80-bb89f593e2f5"
-    SHIV_DB_API_KEY: str = "26d20fcf-5c34-4e6d-ad80-bb89f593e2f5"
+    SHIV_DB_PROJECT_ID: str = "7d810bd0-f625-4856-a154-4e04aca955fc"
+    SHIV_DB_API_KEY: str = "shiv_sk_7VpCyHo_X0_Q74V2oX3UJgCQ28DASaccElh5NbJ8amU"
     SHIV_AUTH_JWT_SECRET: str = "shiv-platform-super-secret-jwt-key-for-local-dev-12345"
     SHIV_AUTH_JWT_ALGORITHM: str = "HS256"
 

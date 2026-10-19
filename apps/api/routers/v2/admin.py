@@ -285,6 +285,9 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       <button onclick="switchTab('memory')" id="tab-btn-memory" class="w-full text-left px-3.5 py-2.5 rounded-xl flex items-center space-x-3 transition text-slate-400 hover:bg-slate-800/50 hover:text-white">
         <span>🧠</span> <span>Memory Inspector</span>
       </button>
+      <button onclick="switchTab('media')" id="tab-btn-media" class="w-full text-left px-3.5 py-2.5 rounded-xl flex items-center space-x-3 transition text-slate-400 hover:bg-slate-800/50 hover:text-white">
+        <span>🎨</span> <span>Media Studio (Free)</span>
+      </button>
 
       <div class="mt-auto pt-6 border-t border-slate-800/60 text-xs text-slate-400 px-3">
         <div class="flex justify-between py-1"><span>Env:</span> <span class="text-slate-200 font-mono" id="stat-env">production</span></div>
@@ -839,6 +842,98 @@ print(f'Calculated sum of squares: {sum(squares)}')</textarea>
             </div>
 
             <div id="memories-list" class="space-y-2 text-xs font-mono max-h-[360px] overflow-y-auto">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =============================================================== -->
+      <!-- TAB 10: FREE MULTIMODAL MEDIA STUDIO -->
+      <!-- =============================================================== -->
+      <section id="tab-media" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">Free Multimodal Studio (Images, Videos & Audio)</h2>
+          <p class="text-sm text-slate-400 mt-1">Generate high-resolution photorealistic images, short video animations, and neural audio 100% free with zero GPU overhead.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Card 1: Text-to-Image -->
+          <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+            <div class="flex items-center space-x-2 text-indigo-400 font-bold text-sm">
+              <span>🖼️</span> <span>Text-to-Image (FLUX.1 Schnell)</span>
+            </div>
+            <div>
+              <label class="block text-xs text-slate-400 mb-1">Image Prompt</label>
+              <textarea id="media-img-prompt" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200" placeholder="A futuristic city in the Himalayas at sunrise, cyberpunk aesthetics, volumetric lighting, photorealistic 8k"></textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Model Variant</label>
+                <select id="media-img-model" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-300">
+                  <option value="flux">FLUX.1 Schnell (Highest Quality)</option>
+                  <option value="turbo">SDXL Turbo (Fastest)</option>
+                  <option value="flux-realism">FLUX Realism</option>
+                  <option value="flux-anime">FLUX Anime</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Dimensions</label>
+                <select id="media-img-size" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-300">
+                  <option value="1024x1024">Square (1024 x 1024)</option>
+                  <option value="1280x720">Landscape (1280 x 720)</option>
+                  <option value="720x1280">Portrait (720 x 1280)</option>
+                </select>
+              </div>
+            </div>
+            <button onclick="generateStudioImage()" id="btn-gen-img" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-semibold transition">
+              Generate Image ✨
+            </button>
+            <div id="media-img-preview" class="min-h-[220px] bg-slate-950 rounded-xl border border-slate-800/80 flex items-center justify-center overflow-hidden p-2">
+              <span class="text-xs text-slate-500">Generated image will appear here</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Text-to-Video & Speech -->
+          <div class="space-y-6">
+            <!-- Text-to-Video -->
+            <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+              <div class="flex items-center space-x-2 text-cyan-400 font-bold text-sm">
+                <span>🎬</span> <span>Text-to-Video / Animation</span>
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Video Prompt</label>
+                <input id="media-vid-prompt" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200" placeholder="A golden eagle soaring over snow-capped mountains in slow motion">
+              </div>
+              <button onclick="generateStudioVideo()" id="btn-gen-vid" class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-sm font-semibold transition">
+                Generate Video Clip 🎥
+              </button>
+              <div id="media-vid-preview" class="min-h-[160px] bg-slate-950 rounded-xl border border-slate-800/80 flex items-center justify-center overflow-hidden p-2">
+                <span class="text-xs text-slate-500">Generated video will appear here</span>
+              </div>
+            </div>
+
+            <!-- Neural Audio Speech -->
+            <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+              <div class="flex items-center space-x-2 text-emerald-400 font-bold text-sm">
+                <span>🔊</span> <span>Neural Voice Synthesis (Edge-TTS)</span>
+              </div>
+              <div>
+                <label class="block text-xs text-slate-400 mb-1">Text to Speak (Hindi / English / Hinglish)</label>
+                <input id="media-tts-text" type="text" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200" value="नमस्ते, शिव एआई वी२ में आपका स्वागत है।">
+              </div>
+              <div class="flex space-x-3 text-xs">
+                <select id="media-tts-voice" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-300">
+                  <option value="hi-IN-SwaraNeural">Swara (Hindi Female - Natural)</option>
+                  <option value="hi-IN-MadhurNeural">Madhur (Hindi Male)</option>
+                  <option value="en-IN-NeerjaNeural">Neerja (Indian English Female)</option>
+                  <option value="en-IN-PrabhatNeural">Prabhat (Indian English Male)</option>
+                  <option value="en-US-JennyNeural">Jenny (US English)</option>
+                </select>
+                <button onclick="generateStudioSpeech()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-semibold transition">
+                  Speak 🗣️
+                </button>
+              </div>
+              <audio id="media-audio-player" controls class="w-full hidden mt-2"></audio>
             </div>
           </div>
         </div>
@@ -1450,7 +1545,67 @@ print(f'Calculated sum of squares: {sum(squares)}')</textarea>
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+    async function generateStudioImage() {
+      const prompt = document.getElementById('media-img-prompt').value.trim();
+      if (!prompt) return showToast('Please enter an image prompt', 'error');
+      const model = document.getElementById('media-img-model').value;
+      const size = document.getElementById('media-img-size').value.split('x');
+      const width = parseInt(size[0]);
+      const height = parseInt(size[1]);
+
+      const btn = document.getElementById('btn-gen-img');
+      const preview = document.getElementById('media-img-preview');
+      btn.innerText = 'Generating Image... ⏳';
+      btn.disabled = true;
+      preview.innerHTML = '<span class="text-xs text-indigo-400 animate-pulse font-mono">Generating high-res image with FLUX.1...</span>';
+
+      try {
+        const res = await apiRequest('/v2/media/image', 'POST', { prompt, model, width, height });
+        preview.innerHTML = `<a href="${res.image_url}" target="_blank" title="Click to view full size"><img src="${res.image_url}" class="max-h-[360px] w-auto rounded-lg shadow-xl hover:scale-105 transition" alt="${escapeHtml(prompt)}" /></a>`;
+        showToast('Image generated successfully!', 'success');
+      } catch (e) {
+        preview.innerHTML = `<span class="text-xs text-rose-400 font-mono">Error: ${escapeHtml(e.message)}</span>`;
+        showToast(e.message, 'error');
+      } finally {
+        btn.innerText = 'Generate Image ✨';
+        btn.disabled = false;
+      }
+    }
+
+    async function generateStudioVideo() {
+      const prompt = document.getElementById('media-vid-prompt').value.trim();
+      if (!prompt) return showToast('Please enter a video prompt', 'error');
+
+      const btn = document.getElementById('btn-gen-vid');
+      const preview = document.getElementById('media-vid-preview');
+      btn.innerText = 'Generating Video... ⏳';
+      btn.disabled = true;
+      preview.innerHTML = '<span class="text-xs text-cyan-400 animate-pulse font-mono">Generating video animation...</span>';
+
+      try {
+        const res = await apiRequest('/v2/media/video', 'POST', { prompt, duration: 3 });
+        preview.innerHTML = `<video controls autoplay loop class="max-h-[260px] rounded-lg shadow-xl"><source src="${res.video_url}" type="video/mp4">Your browser does not support the video tag.</video>`;
+        showToast('Video generated successfully!', 'success');
+      } catch (e) {
+        preview.innerHTML = `<span class="text-xs text-rose-400 font-mono">Error: ${escapeHtml(e.message)}</span>`;
+        showToast(e.message, 'error');
+      } finally {
+        btn.innerText = 'Generate Video Clip 🎥';
+        btn.disabled = false;
+      }
+    }
+
+    function generateStudioSpeech() {
+      const text = document.getElementById('media-tts-text').value.trim();
+      if (!text) return showToast('Please enter text to speak', 'error');
+      const voice = document.getElementById('media-tts-voice').value;
+      const player = document.getElementById('media-audio-player');
+      
+      const audioUrl = `/v2/media/speech?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(voice)}`;
+      player.src = audioUrl;
+      player.classList.remove('hidden');
+      player.play();
+      showToast('Playing neural speech audio', 'success');
     }
 
     // Initialize on page load

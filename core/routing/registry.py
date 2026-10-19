@@ -16,6 +16,9 @@ class ModelCapabilities(BaseModel):
     streaming: bool = True
     coding: bool = True
     structured_output: bool = True
+    image_generation: bool = False
+    video_generation: bool = False
+    audio_generation: bool = False
 
 
 class ModelInfo(BaseModel):
@@ -131,6 +134,9 @@ class ModelRegistry:
                     streaming=caps_dict.get("streaming", True),
                     coding=caps_dict.get("coding", True),
                     structured_output=caps_dict.get("structured_output", True),
+                    image_generation=caps_dict.get("image_generation", False),
+                    video_generation=caps_dict.get("video_generation", False),
+                    audio_generation=caps_dict.get("audio_generation", False),
                 )
 
                 info = ModelInfo(
@@ -164,6 +170,10 @@ class ModelRegistry:
             if m.model_name == model_id_or_name or m.model_id == model_id_or_name:
                 return m
         return None
+
+    def get_model(self, model_id_or_name: str) -> Optional[ModelInfo]:
+        """Alias for get()."""
+        return self.get(model_id_or_name)
 
     def list_all(self, enabled_only: bool = True) -> List[ModelInfo]:
         """Returns all registered models."""
