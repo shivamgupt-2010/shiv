@@ -119,3 +119,7 @@ async def get_current_user_context(
         detail={"error": {"code": "UNAUTHORIZED", "message": "Authentication required. Supply a valid SHIV Auth Bearer token."}},
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+
+get_current_user = get_current_user_context
+

@@ -32,6 +32,9 @@ from apps.api.routers.v2 import (
     v2_documents_router,
     v2_admin_router,
     v2_media_router,
+    v2_jobs_router,
+    v2_orchestration_router,
+    v2_studios_router,
 )
 from core.resilience.key_pool import key_pool_manager
 
@@ -142,3 +145,6 @@ app.include_router(v2_agents_router)
 app.include_router(v2_documents_router)
 app.include_router(v2_admin_router)
 app.include_router(v2_media_router)
+app.include_router(v2_jobs_router)
+app.include_router(v2_orchestration_router)
+app.include_router(v2_studios_router)

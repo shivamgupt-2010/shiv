@@ -154,3 +154,7 @@ class FreeMediaGenerator:
 
 
 media_generator = FreeMediaGenerator()
+
+
+def get_media_generator() -> FreeMediaGenerator:
+    return media_generator

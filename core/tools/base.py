@@ -19,6 +19,13 @@ class ToolDefinition(BaseModel):
     description: str
     parameters: List[ToolParameter] = Field(default_factory=list)
     required_permission: str = "default"
+    output_schema: Optional[Dict[str, Any]] = None
+    execution_environment: str = "sandboxed"  # sandboxed, host_read_only, network_dispatch
+    timeout_seconds: float = 30.0
+    max_retries: int = 1
+    side_effects: bool = False
+    audit_required: bool = True
+
 
 
 class Tool(ABC):

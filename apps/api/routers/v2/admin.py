@@ -288,6 +288,15 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       <button onclick="switchTab('media')" id="tab-btn-media" class="w-full text-left px-3.5 py-2.5 rounded-xl flex items-center space-x-3 transition text-slate-400 hover:bg-slate-800/50 hover:text-white">
         <span>🎨</span> <span>Media Studio (Free)</span>
       </button>
+      <button onclick="switchTab('orchestrator')" id="tab-btn-orchestrator" class="w-full text-left px-3.5 py-2.5 rounded-xl flex items-center space-x-3 transition text-slate-400 hover:bg-slate-800/50 hover:text-white">
+        <span>🎯</span> <span>Intent & DAG Planner</span>
+      </button>
+      <button onclick="switchTab('studios')" id="tab-btn-studios" class="w-full text-left px-3.5 py-2.5 rounded-xl flex items-center space-x-3 transition text-slate-400 hover:bg-slate-800/50 hover:text-white">
+        <span>🚀</span> <span>Creative & Dev Studios</span>
+      </button>
+      <button onclick="switchTab('jobs')" id="tab-btn-jobs" class="w-full text-left px-3.5 py-2.5 rounded-xl flex items-center space-x-3 transition text-slate-400 hover:bg-slate-800/50 hover:text-white">
+        <span>⚡</span> <span>Background Jobs</span>
+      </button>
 
       <div class="mt-auto pt-6 border-t border-slate-800/60 text-xs text-slate-400 px-3">
         <div class="flex justify-between py-1"><span>Env:</span> <span class="text-slate-200 font-mono" id="stat-env">production</span></div>
@@ -939,6 +948,206 @@ print(f'Calculated sum of squares: {sum(squares)}')</textarea>
         </div>
       </section>
 
+      <!-- Section: Intent & DAG Planner -->
+      <section id="tab-orchestrator" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">Universal Intent & DAG Task Planner</h2>
+          <p class="text-sm text-slate-400 mt-1">Classify complex multimodal requests across 17 domains and synthesize dependency-aware execution plans.</p>
+        </div>
+
+        <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+          <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">User Goal or Complex Task Prompt</label>
+          <div class="flex space-x-3">
+            <input type="text" id="orch-prompt" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200"
+                   placeholder="e.g. Build a 2D neon space shooter arcade game with touch controls, audio, and high score"
+                   value="Build a full-stack SaaS application with FastAPI, SQLite, and responsive Tailwind UI">
+            <button onclick="analyzeOrchestration()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 font-semibold text-white rounded-xl text-sm transition">
+              Deconstruct & Plan 🎯
+            </button>
+          </div>
+
+          <div id="orch-results" class="hidden space-y-6 pt-4 border-t border-slate-800/60">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                <span class="text-xs text-slate-400 block mb-1">Primary Intent</span>
+                <span class="text-base font-bold text-indigo-400" id="orch-primary">-</span>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                <span class="text-xs text-slate-400 block mb-1">Confidence Score</span>
+                <span class="text-base font-bold text-emerald-400" id="orch-confidence">-</span>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                <span class="text-xs text-slate-400 block mb-1">Assigned Lead Agent</span>
+                <span class="text-base font-bold text-cyan-400" id="orch-agent">-</span>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-sm font-bold text-white mb-3">Synthesized DAG Execution Steps</h3>
+              <div id="orch-steps-list" class="space-y-3"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Creative & Dev Studios -->
+      <section id="tab-studios" class="hidden space-y-6">
+        <div>
+          <h2 class="text-2xl font-bold tracking-tight text-white">Creative & Development Studios</h2>
+          <p class="text-sm text-slate-400 mt-1">Instant generation sandboxes for 2D Design, 3D Assets, Browser Games, and Full-Stack Web Applications.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 1. 2D Design Studio -->
+          <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+            <div class="flex items-center space-x-2 text-cyan-400 font-bold text-sm">
+              <span>🎨</span> <span>2D Layered Design Studio</span>
+            </div>
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Design Headline</label>
+                <input type="text" id="studio-design-headline" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200" value="ShivAI Next-Gen Multimodal Architecture">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-slate-400 mb-1">Preset Format</label>
+                  <select id="studio-design-preset" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-300">
+                    <option value="social_banner">Social Banner (1200x630)</option>
+                    <option value="square_post">Square Post (1080x1080)</option>
+                    <option value="youtube_thumbnail">YouTube Thumbnail (1280x720)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-400 mb-1">Background Color</label>
+                  <input type="text" id="studio-design-bg" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-200" value="#0F172A">
+                </div>
+              </div>
+              <button onclick="renderStudioDesign()" class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-semibold transition">
+                Render Vector SVG Canvas 🖼️
+              </button>
+            </div>
+            <div id="studio-design-preview" class="border border-slate-800 rounded-xl p-2 bg-slate-950/80 flex items-center justify-center min-h-[160px] overflow-hidden">
+              <span class="text-xs text-slate-500 italic">Rendered SVG canvas will appear here</span>
+            </div>
+          </div>
+
+          <!-- 2. 3D Asset Studio -->
+          <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+            <div class="flex items-center space-x-2 text-purple-400 font-bold text-sm">
+              <span>🧊</span> <span>3D Procedural Asset Studio</span>
+            </div>
+            <div class="space-y-3 text-xs">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-slate-400 mb-1">Procedural Mesh</label>
+                  <select id="studio-3d-mesh" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-300">
+                    <option value="cube">Cube (Sharp Normals)</option>
+                    <option value="sphere">UV Sphere (Smooth)</option>
+                    <option value="cylinder">Cylinder (Parametric)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-400 mb-1">PBR Albedo Color</label>
+                  <input type="text" id="studio-3d-color" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-200" value="#38BDF8">
+                </div>
+              </div>
+              <button onclick="renderStudio3D()" class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-semibold transition">
+                Synthesize 3D Mesh & Viewport 🧊
+              </button>
+            </div>
+            <div id="studio-3d-preview" class="border border-slate-800 rounded-xl overflow-hidden min-h-[160px] bg-slate-950 flex items-center justify-center">
+              <span class="text-xs text-slate-500 italic">3D WebGL interactive viewport will render here</span>
+            </div>
+          </div>
+
+          <!-- 3. Game Studio -->
+          <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+            <div class="flex items-center space-x-2 text-rose-400 font-bold text-sm">
+              <span>🎮</span> <span>Game Development Studio</span>
+            </div>
+            <div class="space-y-3 text-xs">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-slate-400 mb-1">Game Title</label>
+                  <input type="text" id="studio-game-title" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-200" value="Cyber Orbit Runner">
+                </div>
+                <div>
+                  <label class="block text-slate-400 mb-1">Game Engine</label>
+                  <select id="studio-game-type" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-300">
+                    <option value="2d">2D HTML5 Canvas + Web Audio</option>
+                    <option value="3d">3D WebGL Three.js Arena</option>
+                  </select>
+                </div>
+              </div>
+              <button onclick="renderStudioGame()" class="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-semibold transition">
+                Generate & Launch Playable Game 🕹️
+              </button>
+            </div>
+            <div id="studio-game-preview" class="border border-slate-800 rounded-xl overflow-hidden min-h-[200px] bg-slate-950 flex items-center justify-center">
+              <span class="text-xs text-slate-500 italic">Playable standalone game will run inside this container</span>
+            </div>
+          </div>
+
+          <!-- 4. Full-Stack App Builder -->
+          <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+            <div class="flex items-center space-x-2 text-amber-400 font-bold text-sm">
+              <span>📦</span> <span>Full-Stack App Builder</span>
+            </div>
+            <div class="space-y-3 text-xs">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-slate-400 mb-1">Application Name</label>
+                  <input type="text" id="studio-app-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-200" value="QuickTask Pro">
+                </div>
+                <div>
+                  <label class="block text-slate-400 mb-1">Primary Entity</label>
+                  <input type="text" id="studio-app-entity" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-200" value="Task">
+                </div>
+              </div>
+              <button onclick="bundleStudioApp()" class="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-semibold transition">
+                Generate & Package Full-Stack App ZIP 🚀
+              </button>
+            </div>
+            <div id="studio-app-preview" class="border border-slate-800 rounded-xl p-4 bg-slate-950/80 min-h-[160px] text-xs space-y-2">
+              <span class="text-slate-500 italic block">Multi-tier FastAPI + Tailwind project manifest and ZIP download will appear here</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section: Background Jobs -->
+      <section id="tab-jobs" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-white">Background Job Queue</h2>
+            <p class="text-sm text-slate-400 mt-1">Monitor prioritized task processing, worker states, and downloadable artifacts.</p>
+          </div>
+          <button onclick="loadBackgroundJobs()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition">
+            Refresh Jobs 🔄
+          </button>
+        </div>
+
+        <div class="rounded-2xl glass border border-slate-800/80 overflow-hidden">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-900/80 text-slate-400 border-b border-slate-800/80">
+              <tr>
+                <th class="p-3.5">Job ID</th>
+                <th class="p-3.5">Type</th>
+                <th class="p-3.5">Priority</th>
+                <th class="p-3.5">Status</th>
+                <th class="p-3.5">Progress</th>
+                <th class="p-3.5">Artifacts</th>
+              </tr>
+            </thead>
+            <tbody id="jobs-table-body" class="divide-y divide-slate-800/40">
+              <tr>
+                <td colspan="6" class="p-4 text-center text-slate-500 italic">No background jobs active</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -990,6 +1199,7 @@ print(f'Calculated sum of squares: {sum(squares)}')</textarea>
       activeTab = tabId;
 
       if (tabId === 'memory') loadUserMemories();
+      if (tabId === 'jobs') loadBackgroundJobs();
       if (tabId === 'overview' || tabId === 'settings') refreshAllData();
     }
 
@@ -1606,6 +1816,183 @@ print(f'Calculated sum of squares: {sum(squares)}')</textarea>
       player.classList.remove('hidden');
       player.play();
       showToast('Playing neural speech audio', 'success');
+    }
+
+    // --- Intent & Orchestrator JS ---
+    async function analyzeOrchestration() {
+      const prompt = document.getElementById('orch-prompt').value.trim();
+      if (!prompt) return showToast('Please enter a goal or task prompt', 'error');
+
+      try {
+        const [intent, plan] = await Promise.all([
+          apiRequest('/v2/orchestration/classify', 'POST', { prompt }),
+          apiRequest('/v2/orchestration/plan', 'POST', { goal: prompt })
+        ]);
+
+        document.getElementById('orch-results').classList.remove('hidden');
+        document.getElementById('orch-primary').innerText = intent.primary_intent.toUpperCase().replace(/_/g, ' ');
+        document.getElementById('orch-confidence').innerText = (intent.confidence * 100).toFixed(0) + '%';
+        document.getElementById('orch-agent').innerText = intent.recommended_agent.toUpperCase();
+
+        const stepsList = document.getElementById('orch-steps-list');
+        stepsList.innerHTML = plan.steps.map((s, idx) => `
+          <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800/80 flex items-start space-x-3">
+            <span class="w-6 h-6 rounded-full bg-indigo-950 text-indigo-400 border border-indigo-800 flex items-center justify-center font-bold text-xs shrink-0">${idx+1}</span>
+            <div class="flex-1 space-y-1">
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-slate-200 text-xs">${escapeHtml(s.name)}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300">Agent: ${escapeHtml(s.assigned_agent)}</span>
+              </div>
+              <p class="text-[11px] text-slate-400">${escapeHtml(s.description)}</p>
+              <div class="text-[10px] text-emerald-400/80 font-mono">Validation: ${escapeHtml(s.validation_criteria)}</div>
+            </div>
+          </div>
+        `).join('');
+
+        showToast('Task decomposed into execution DAG', 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    // --- 2D Design Studio JS ---
+    async function renderStudioDesign() {
+      const headline = document.getElementById('studio-design-headline').value.trim();
+      const preset = document.getElementById('studio-design-preset').value;
+      const bg = document.getElementById('studio-design-bg').value.trim();
+      const preview = document.getElementById('studio-design-preview');
+
+      preview.innerHTML = '<span class="text-xs text-cyan-400 animate-pulse font-mono">Rendering vector SVG canvas...</span>';
+      try {
+        const res = await apiRequest('/v2/studios/design/create', 'POST', {
+          name: 'Banner',
+          preset,
+          background_color: bg,
+          headline
+        });
+        preview.innerHTML = `<div class="w-full max-h-[300px] overflow-hidden rounded-lg shadow-xl">${res.svg}</div>`;
+        showToast('SVG canvas rendered successfully', 'success');
+      } catch (e) {
+        preview.innerHTML = `<span class="text-xs text-rose-400 font-mono">Error: ${escapeHtml(e.message)}</span>`;
+        showToast(e.message, 'error');
+      }
+    }
+
+    // --- 3D Asset Studio JS ---
+    async function renderStudio3D() {
+      const mesh_type = document.getElementById('studio-3d-mesh').value;
+      const color = document.getElementById('studio-3d-color').value.trim();
+      const preview = document.getElementById('studio-3d-preview');
+
+      preview.innerHTML = '<span class="text-xs text-purple-400 animate-pulse font-mono">Synthesizing 3D mesh geometry...</span>';
+      try {
+        const res = await apiRequest('/v2/studios/threed/create', 'POST', {
+          name: 'Asset',
+          mesh_type,
+          color,
+          metallic: 0.3,
+          roughness: 0.4
+        });
+        const blob = new Blob([res.html_preview], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        preview.innerHTML = `<iframe src="${url}" class="w-full h-[240px] border-0 rounded-lg"></iframe>`;
+        showToast(`3D ${mesh_type} mesh synthesized (${res.triangle_count} triangles)`, 'success');
+      } catch (e) {
+        preview.innerHTML = `<span class="text-xs text-rose-400 font-mono">Error: ${escapeHtml(e.message)}</span>`;
+        showToast(e.message, 'error');
+      }
+    }
+
+    // --- Game Studio JS ---
+    async function renderStudioGame() {
+      const title = document.getElementById('studio-game-title').value.trim() || 'Neon Runner';
+      const game_type = document.getElementById('studio-game-type').value;
+      const preview = document.getElementById('studio-game-preview');
+
+      preview.innerHTML = '<span class="text-xs text-rose-400 animate-pulse font-mono">Generating game loop & Web Audio synthesizer...</span>';
+      try {
+        const res = await apiRequest('/v2/studios/games/create', 'POST', {
+          title,
+          game_type
+        });
+        const blob = new Blob([res.html_bundle], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        preview.innerHTML = `<iframe src="${url}" class="w-full h-[320px] border-0 rounded-lg"></iframe>`;
+        showToast(`Playable ${game_type.toUpperCase()} game running!`, 'success');
+      } catch (e) {
+        preview.innerHTML = `<span class="text-xs text-rose-400 font-mono">Error: ${escapeHtml(e.message)}</span>`;
+        showToast(e.message, 'error');
+      }
+    }
+
+    // --- Full-Stack App Builder JS ---
+    async function bundleStudioApp() {
+      const app_name = document.getElementById('studio-app-name').value.trim() || 'My App';
+      const entity_name = document.getElementById('studio-app-entity').value.trim() || 'Item';
+      const preview = document.getElementById('studio-app-preview');
+
+      preview.innerHTML = '<span class="text-xs text-amber-400 animate-pulse font-mono">Generating full-stack FastAPI + Tailwind project...</span>';
+      try {
+        const res = await apiRequest('/v2/studios/apps/create', 'POST', {
+          app_name,
+          entity_name
+        });
+        preview.innerHTML = `
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-emerald-400 font-bold">
+              <span>✅ ${escapeHtml(res.app_name)} Built Successfully</span>
+              <a href="/v2/jobs/${res.project_id}/artifacts/${res.artifact.name}" class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-semibold transition" download>
+                Download ZIP Bundle 📦
+              </a>
+            </div>
+            <div class="text-[11px] text-slate-400">Generated Files: ${res.files.map(f => `<code class="bg-slate-900 px-1 py-0.5 rounded text-amber-300 font-mono">${f}</code>`).join(' ')}</div>
+            <div class="text-[10px] text-slate-500 font-mono">Validated Syntax: Python AST verified | HTML5 UI integrated</div>
+          </div>
+        `;
+        showToast('Full-Stack App bundle created successfully', 'success');
+      } catch (e) {
+        preview.innerHTML = `<span class="text-xs text-rose-400 font-mono">Error: ${escapeHtml(e.message)}</span>`;
+        showToast(e.message, 'error');
+      }
+    }
+
+    // --- Background Jobs JS ---
+    async function loadBackgroundJobs() {
+      const tbody = document.getElementById('jobs-table-body');
+      try {
+        const jobs = await apiRequest('/v2/jobs');
+        if (!jobs || jobs.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500 italic">No background jobs registered yet</td></tr>';
+          return;
+        }
+        tbody.innerHTML = jobs.map(j => {
+          const badgeClass = j.status === 'completed' ? 'bg-emerald-950 text-emerald-400 border-emerald-800' :
+                             j.status === 'running' ? 'bg-indigo-950 text-indigo-400 border-indigo-800 animate-pulse' :
+                             j.status === 'failed' ? 'bg-rose-950 text-rose-400 border-rose-800' :
+                             'bg-slate-800 text-slate-400 border-slate-700';
+          return `
+            <tr class="hover:bg-slate-800/20">
+              <td class="p-3.5 font-mono text-slate-300">${escapeHtml(j.job_id)}</td>
+              <td class="p-3.5 font-semibold text-white">${escapeHtml(j.job_type)}</td>
+              <td class="p-3.5 text-slate-400 font-mono">${j.priority === 1 ? 'CRITICAL' : j.priority === 2 ? 'HIGH' : 'NORMAL'}</td>
+              <td class="p-3.5"><span class="px-2 py-0.5 rounded-full border text-[10px] font-bold ${badgeClass}">${j.status.toUpperCase()}</span></td>
+              <td class="p-3.5">
+                <div class="w-24 bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                  <div class="bg-indigo-500 h-1.5" style="width: ${j.progress.percentage}%"></div>
+                </div>
+                <span class="text-[10px] text-slate-400">${j.progress.percentage}%</span>
+              </td>
+              <td class="p-3.5">
+                ${j.artifacts && j.artifacts.length > 0 ?
+                  j.artifacts.map(a => `<a href="/v2/jobs/${j.job_id}/artifacts/${a.name}" class="text-xs text-cyan-400 hover:underline block">${escapeHtml(a.name)}</a>`).join('') :
+                  '<span class="text-slate-600">-</span>'}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-rose-400 font-mono">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
     }
 
     // Initialize on page load
