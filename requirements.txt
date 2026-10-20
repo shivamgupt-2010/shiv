@@ -16,3 +16,6 @@ edge-tts>=7.0.0
 pypdf>=5.0.0
 pyjwt>=2.8.0
 python-multipart>=0.0.9
+psutil>=5.9.0,<7.0.0
+Pillow>=10.0.0,<12.0.0
+

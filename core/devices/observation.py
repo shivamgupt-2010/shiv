@@ -14,7 +14,16 @@ import time
 from typing import Any, Dict, List, Optional
 
 import psutil
-from PIL import Image, ImageGrab
+
+# PIL/ImageGrab is only available on Windows and macOS (requires a display server).
+# On Linux (e.g. Render, Docker without Xvfb) it raises OSError — guard gracefully.
+try:
+    from PIL import Image, ImageGrab
+    _PIL_AVAILABLE = True
+except Exception:  # noqa: BLE001
+    Image = None  # type: ignore[assignment]
+    ImageGrab = None  # type: ignore[assignment]
+    _PIL_AVAILABLE = False
 
 from core.devices.security import SensitiveDataScrubber
 from core.devices.types import (
@@ -89,9 +98,15 @@ class ScreenObservationService:
             "redacted_count": redacted_count,
         }
 
+
     @classmethod
     def capture_screenshot_b64(cls, max_dim: int = 1280) -> Optional[str]:
-        """Captures a single screenshot, resizes it, and encodes as base64 JPEG."""
+        """Captures a single screenshot, resizes it, and encodes as base64 JPEG.
+        Returns None on headless Linux/Docker environments where no display server is available.
+        """
+        if not _PIL_AVAILABLE or ImageGrab is None:
+            logger.debug("Screenshot unavailable: PIL/ImageGrab not available on this platform")
+            return None
         try:
             img = ImageGrab.grab()
             if img:
@@ -102,7 +117,8 @@ class ScreenObservationService:
                 return base64.b64encode(buf.getvalue()).decode("utf-8")
         except Exception as e:
             logger.debug(f"Screenshot capture fallback: {e}")
-            return None
+        return None
+
 
     @classmethod
     def observe(
