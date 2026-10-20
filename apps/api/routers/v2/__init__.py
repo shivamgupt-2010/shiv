@@ -15,6 +15,8 @@ from apps.api.routers.v2.media import v2_media_router
 from apps.api.routers.v2.jobs import router as v2_jobs_router
 from apps.api.routers.v2.orchestration import router as v2_orchestration_router
 from apps.api.routers.v2.studios import router as v2_studios_router
+from apps.api.routers.v2.devices import router as v2_devices_router
+from apps.api.routers.v2.automation import router as v2_automation_router
 
 __all__ = [
     "v2_chat_router",
@@ -31,4 +33,7 @@ __all__ = [
     "v2_jobs_router",
     "v2_orchestration_router",
     "v2_studios_router",
+    "v2_devices_router",
+    "v2_automation_router",
 ]
+

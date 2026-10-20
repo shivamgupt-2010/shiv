@@ -297,6 +297,10 @@ DASHBOARD_HTML = """<!DOCTYPE html>
       <button onclick="switchTab('jobs')" id="tab-btn-jobs" class="w-full text-left px-3.5 py-2.5 rounded-xl flex items-center space-x-3 transition text-slate-400 hover:bg-slate-800/50 hover:text-white">
         <span>⚡</span> <span>Background Jobs</span>
       </button>
+      <button onclick="switchTab('devices')" id="tab-btn-devices" class="w-full text-left px-3.5 py-2.5 rounded-xl flex items-center space-x-3 transition text-slate-400 hover:bg-slate-800/50 hover:text-white">
+        <span>📱</span> <span>Devices & Automation</span>
+      </button>
+
 
       <div class="mt-auto pt-6 border-t border-slate-800/60 text-xs text-slate-400 px-3">
         <div class="flex justify-between py-1"><span>Env:</span> <span class="text-slate-200 font-mono" id="stat-env">production</span></div>
@@ -1148,6 +1152,157 @@ print(f'Calculated sum of squares: {sum(squares)}')</textarea>
         </div>
       </section>
 
+      <!-- Section: Devices & Automation Operator -->
+      <section id="tab-devices" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-2xl font-bold tracking-tight text-white">Universal Device Operator & Work Automation</h2>
+            <p class="text-sm text-slate-400 mt-1">Permission-governed digital execution across Windows, Android, Browser, and Workplace APIs.</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <button onclick="loadDevicesDashboard()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition">
+              Refresh Telemetry 🔄
+            </button>
+            <button id="btn-emergency-stop" onclick="triggerEmergencyStopUI()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-rose-900/40 flex items-center space-x-2">
+              <span>🛑</span> <span>EMERGENCY STOP</span>
+            </button>
+            <button id="btn-emergency-reset" onclick="resetEmergencyStopUI()" class="hidden px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition">
+              Reset Emergency Stop 🟢
+            </button>
+          </div>
+        </div>
+
+        <!-- Emergency Status Banner -->
+        <div id="device-emergency-alert" class="hidden p-4 rounded-2xl bg-rose-950/80 border border-rose-800/80 text-rose-200 text-xs flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">⚠️</span>
+            <div>
+              <span class="font-bold uppercase tracking-wider block">System Kill Switch Active</span>
+              <span id="device-emergency-reason" class="text-rose-300">All device automation and external actions are locked.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2-Column Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Left Column: Devices & Observation -->
+          <div class="space-y-6">
+            <!-- Connected Devices Card -->
+            <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-indigo-400 font-bold text-sm">
+                  <span>📱</span> <span>Enrolled & Paired Devices</span>
+                </div>
+                <button onclick="requestDevicePairingUI()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-semibold transition">
+                  + Pair Device
+                </button>
+              </div>
+
+              <div id="pairing-code-banner" class="hidden p-3 rounded-xl bg-indigo-950/60 border border-indigo-800 text-xs text-indigo-200 flex justify-between items-center">
+                <span>Pairing Code: <strong id="pairing-code-display" class="text-base text-white font-mono ml-2">--</strong></span>
+                <span class="text-[10px] text-indigo-400">Expires in 5m</span>
+              </div>
+
+              <div class="rounded-xl overflow-hidden border border-slate-800">
+                <table class="w-full text-left text-xs text-slate-300">
+                  <thead class="bg-slate-900/80 text-slate-400 border-b border-slate-800">
+                    <tr>
+                      <th class="p-2.5">Name</th>
+                      <th class="p-2.5">Type</th>
+                      <th class="p-2.5">Status</th>
+                      <th class="p-2.5 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="devices-table-body" class="divide-y divide-slate-800/40">
+                    <tr><td colspan="4" class="p-3 text-center text-slate-500 italic">Loading devices...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Active Window & Screen Observation -->
+            <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-cyan-400 font-bold text-sm">
+                  <span>🖥️</span> <span>Foreground Window & UI Observation</span>
+                </div>
+                <button onclick="observeHostDeviceUI()" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg text-[11px] font-semibold transition">
+                  Capture State 👁️
+                </button>
+              </div>
+
+              <div id="observation-result" class="space-y-2 text-xs">
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 font-mono space-y-1">
+                  <div><span class="text-slate-500">Active Window:</span> <span id="obs-window-title" class="text-slate-200">--</span></div>
+                  <div><span class="text-slate-500">Process Name:</span> <span id="obs-process-name" class="text-cyan-400">--</span> <span class="text-slate-600">(PID: <span id="obs-pid">--</span>)</span></div>
+                  <div><span class="text-slate-500">Window Bounds:</span> <span id="obs-bounds" class="text-slate-400">--</span></div>
+                  <div><span class="text-slate-500">Sanitized Secrets:</span> <span id="obs-redacted" class="text-emerald-400">0</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Approvals Inbox & 3-Tier Policy Engine -->
+          <div class="space-y-6">
+            <!-- Pending Approvals Inbox -->
+            <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2 text-amber-400 font-bold text-sm">
+                  <span>🛡️</span> <span>3-Tier Policy Approvals Inbox</span>
+                </div>
+                <span id="pending-approvals-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-800">0 PENDING</span>
+              </div>
+
+              <div id="approvals-inbox-list" class="space-y-3 text-xs max-h-[220px] overflow-y-auto">
+                <div class="p-4 text-center text-slate-500 italic">No consequential actions pending human approval.</div>
+              </div>
+            </div>
+
+            <!-- Action Policy Simulator -->
+            <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+              <div class="flex items-center space-x-2 text-purple-400 font-bold text-sm">
+                <span>🧪</span> <span>Action Policy Simulator</span>
+              </div>
+              <div class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-slate-400 mb-1">Target Action</label>
+                    <select id="sim-action-type" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-300">
+                      <option value="observe_state">Category A: Observe Window State (Low Risk)</option>
+                      <option value="launch_app">Category A: Launch App (Local Workspace)</option>
+                      <option value="publish_post">Category B: Publish Social Post (Consequential)</option>
+                      <option value="send_email">Category B: Send Email to Client (Consequential)</option>
+                      <option value="submit_form">Category C: Bank Transfer / Payment Form (Sensitive)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-slate-400 mb-1">Target Device / App</label>
+                    <input type="text" id="sim-target-app" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 text-slate-200" value="host-local-primary">
+                  </div>
+                </div>
+                <button onclick="simulateDeviceAction()" class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-semibold transition">
+                  Dispatch Action Through Policy Engine 🛡️
+                </button>
+                <div id="sim-result-box" class="hidden p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-[11px] text-slate-300 whitespace-pre-wrap max-h-36 overflow-y-auto"></div>
+              </div>
+            </div>
+
+            <!-- Recurring Automation Schedules -->
+            <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">
+              <div class="flex items-center space-x-2 text-emerald-400 font-bold text-sm">
+                <span>⏱️</span> <span>Background Recurring Automations</span>
+              </div>
+              <div id="schedules-list" class="space-y-2 text-xs">
+                <div class="p-3 text-center text-slate-500 italic">Loading schedules...</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+
     </main>
   </div>
 
@@ -1200,8 +1355,10 @@ print(f'Calculated sum of squares: {sum(squares)}')</textarea>
 
       if (tabId === 'memory') loadUserMemories();
       if (tabId === 'jobs') loadBackgroundJobs();
+      if (tabId === 'devices') loadDevicesDashboard();
       if (tabId === 'overview' || tabId === 'settings') refreshAllData();
     }
+
 
     async function apiRequest(endpoint, method = 'GET', body = null) {
       const headers = {
@@ -1995,10 +2152,230 @@ print(f'Calculated sum of squares: {sum(squares)}')</textarea>
       }
     }
 
+    // Device Operator & Automation JavaScript Handlers
+    async function loadDevicesDashboard() {
+      // 1. Check Emergency Stop Status
+      try {
+        const es = await apiRequest('/v2/devices/emergency-stop/status');
+        const alertBox = document.getElementById('device-emergency-alert');
+        const stopBtn = document.getElementById('btn-emergency-stop');
+        const resetBtn = document.getElementById('btn-emergency-reset');
+        if (es.is_active) {
+          alertBox.classList.remove('hidden');
+          document.getElementById('device-emergency-reason').innerText = `Reason: ${es.reason} (Triggered by ${es.triggered_by})`;
+          stopBtn.classList.add('opacity-50', 'pointer-events-none');
+          resetBtn.classList.remove('hidden');
+        } else {
+          alertBox.classList.add('hidden');
+          stopBtn.classList.remove('opacity-50', 'pointer-events-none');
+          resetBtn.classList.add('hidden');
+        }
+      } catch (e) {
+        console.error('Error fetching emergency stop status', e);
+      }
+
+      // 2. Load Devices
+      const devTbody = document.getElementById('devices-table-body');
+      try {
+        const devs = await apiRequest('/v2/devices');
+        if (!devs.length) {
+          devTbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-500 italic">No devices enrolled</td></tr>';
+        } else {
+          devTbody.innerHTML = devs.map(d => `
+            <tr class="hover:bg-slate-800/30">
+              <td class="p-2.5 font-semibold text-white">${escapeHtml(d.name)}</td>
+              <td class="p-2.5 font-mono text-cyan-400 text-[11px]">${d.device_type}</td>
+              <td class="p-2.5"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${d.status === 'online' ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-rose-950 text-rose-400 border border-rose-800'}">${d.status.toUpperCase()}</span></td>
+              <td class="p-2.5 text-right">
+                ${d.status !== 'revoked' ? `<button onclick="revokeDeviceUI('${d.device_id}')" class="text-rose-400 hover:text-rose-300 text-[10px] underline">Revoke</button>` : '<span class="text-slate-600 text-[10px]">Revoked</span>'}
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {
+        devTbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-rose-400">Error: ${escapeHtml(e.message)}</td></tr>`;
+      }
+
+      // 3. Load Pending Approvals
+      const apprList = document.getElementById('approvals-inbox-list');
+      const apprBadge = document.getElementById('pending-approvals-badge');
+      try {
+        const apprs = await apiRequest('/v2/devices/approvals/pending');
+        apprBadge.innerText = `${apprs.length} PENDING`;
+        if (!apprs.length) {
+          apprList.innerHTML = '<div class="p-4 text-center text-slate-500 italic">No consequential actions pending human approval.</div>';
+        } else {
+          apprList.innerHTML = apprs.map(a => `
+            <div class="p-3 rounded-xl bg-slate-900 border border-amber-800/60 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">${a.risk_category}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${a.action_id}</span>
+              </div>
+              <div class="font-semibold text-slate-200 text-xs">${escapeHtml(a.summary)}</div>
+              <div class="text-[11px] text-slate-400">${escapeHtml(a.consequences)}</div>
+              <div class="flex items-center space-x-2 pt-1">
+                <button onclick="decideApprovalUI('${a.approval_id}', true)" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold transition">
+                  Approve ✅
+                </button>
+                <button onclick="decideApprovalUI('${a.approval_id}', false)" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[10px] font-bold transition">
+                  Reject ❌
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        apprList.innerHTML = `<div class="p-3 text-center text-rose-400">Error: ${escapeHtml(e.message)}</div>`;
+      }
+
+      // 4. Load Recurring Schedules
+      const schedList = document.getElementById('schedules-list');
+      try {
+        const scheds = await apiRequest('/v2/automation/schedules');
+        if (!scheds.length) {
+          schedList.innerHTML = '<div class="p-3 text-center text-slate-500 italic">No scheduled automations configured</div>';
+        } else {
+          schedList.innerHTML = scheds.map(s => `
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+              <div>
+                <div class="font-semibold text-slate-200 text-xs">${escapeHtml(s.name)}</div>
+                <div class="text-[10px] text-slate-500">${escapeHtml(s.description)}</div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <button onclick="toggleScheduleUI('${s.workflow_id}', ${!s.is_enabled})" class="px-2 py-0.5 rounded text-[10px] font-bold ${s.is_enabled ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-slate-800 text-slate-400 border border-slate-700'}">
+                  ${s.is_enabled ? 'ENABLED' : 'DISABLED'}
+                </button>
+                <button onclick="triggerScheduleUI('${s.workflow_id}')" class="px-2 py-0.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[10px] font-semibold">
+                  Run ⚡
+                </button>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        schedList.innerHTML = `<div class="p-3 text-center text-rose-400">Error: ${escapeHtml(e.message)}</div>`;
+      }
+    }
+
+    async function triggerEmergencyStopUI() {
+      if (!confirm("Are you sure you want to trigger the SYSTEM EMERGENCY STOP? All device actions and active workflows will be immediately terminated.")) return;
+      try {
+        await apiRequest('/v2/devices/emergency-stop/trigger', 'POST', { reason: 'User initiated emergency stop from Command Center' });
+        showToast('EMERGENCY STOP TRIGGERED: All devices locked', 'error');
+        loadDevicesDashboard();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function resetEmergencyStopUI() {
+      try {
+        await apiRequest('/v2/devices/emergency-stop/reset', 'POST');
+        showToast('Emergency Stop Reset: Devices restored to normal operation', 'success');
+        loadDevicesDashboard();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function requestDevicePairingUI() {
+      try {
+        const res = await apiRequest('/v2/devices/pair/request', 'POST', { name: 'New Client Device', device_type: 'android', ttl_seconds: 300 });
+        document.getElementById('pairing-code-banner').classList.remove('hidden');
+        document.getElementById('pairing-code-display').innerText = res.pairing_code;
+        showToast('Pairing code generated: valid for 5 minutes', 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function revokeDeviceUI(deviceId) {
+      if (!confirm(`Revoke device access for '${deviceId}'?`)) return;
+      try {
+        await apiRequest(`/v2/devices/${deviceId}/revoke`, 'POST');
+        showToast(`Device ${deviceId} revoked`, 'success');
+        loadDevicesDashboard();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function observeHostDeviceUI() {
+      try {
+        const obs = await apiRequest('/v2/devices/host-local-primary/observe', 'POST');
+        document.getElementById('obs-window-title').innerText = obs.active_window_title || 'Active Desktop';
+        document.getElementById('obs-process-name').innerText = obs.active_process_name || 'explorer.exe';
+        document.getElementById('obs-pid').innerText = obs.active_pid || '0';
+        document.getElementById('obs-bounds').innerText = `${obs.window_rect.width}x${obs.window_rect.height} at (${obs.window_rect.x}, ${obs.window_rect.y})`;
+        document.getElementById('obs-redacted').innerText = obs.redacted_secrets_count;
+        showToast('Screen and foreground window state captured', 'success');
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function decideApprovalUI(approvalId, approved) {
+      try {
+        await apiRequest(`/v2/devices/approvals/${approvalId}/decide`, 'POST', { approved, notes: approved ? 'Approved by Admin' : 'Rejected by Admin' });
+        showToast(`Ticket ${approvalId} ${approved ? 'APPROVED' : 'REJECTED'}`, approved ? 'success' : 'error');
+        loadDevicesDashboard();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function simulateDeviceAction() {
+      const atype = document.getElementById('sim-action-type').value;
+      const target = document.getElementById('sim-target-app').value.trim();
+      const resBox = document.getElementById('sim-result-box');
+      resBox.classList.remove('hidden');
+      resBox.innerText = 'Evaluating action through 3-tier policy engine...';
+
+      try {
+        const payload = {
+          action_type: atype,
+          target_app: target,
+          params: atype === 'submit_form' ? { account_action: 'bank_transfer', amount: '$5,000' } : { note: 'Simulation test' }
+        };
+        const res = await apiRequest('/v2/devices/host-local-primary/action', 'POST', payload);
+        resBox.innerText = JSON.stringify(res, null, 2);
+        if (res.status === 'pending_approval') {
+          showToast(`Action requires approval (${res.risk_category})`, 'info');
+          loadDevicesDashboard();
+        } else {
+          showToast(`Action completed: verified=${res.verification?.verified}`, 'success');
+        }
+      } catch (e) {
+        resBox.innerText = 'Error: ' + e.message;
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function toggleScheduleUI(wfId, enable) {
+      try {
+        await apiRequest(`/v2/automation/schedules/${wfId}/toggle`, 'POST', { enabled: enable });
+        showToast(`Schedule ${enable ? 'enabled' : 'disabled'}`, 'success');
+        loadDevicesDashboard();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
+    async function triggerScheduleUI(wfId) {
+      try {
+        const res = await apiRequest(`/v2/automation/schedules/${wfId}/trigger`, 'POST');
+        showToast(`Workflow ${res.workflow_name} triggered!`, 'success');
+        loadDevicesDashboard();
+      } catch (e) {
+        showToast(e.message, 'error');
+      }
+    }
+
     // Initialize on page load
     window.addEventListener('DOMContentLoaded', () => {
       refreshAllData();
     });
+
   </script>
 </body>
 </html>
