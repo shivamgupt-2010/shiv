@@ -5,6 +5,7 @@ Sets up an isolated in-memory SQLite database and mock transports for external A
 import pytest
 import pytest_asyncio
 from typing import AsyncGenerator
+from sqlalchemy.pool import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from database.models import Base, User
 from apps.api.main import app
@@ -17,6 +18,8 @@ TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 test_engine = create_async_engine(
     TEST_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
     echo=False,
     future=True,
 )

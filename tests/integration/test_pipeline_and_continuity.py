@@ -5,7 +5,7 @@ import pytest
 import respx
 import httpx
 from providers.registry import provider_registry
-from database.session import async_session_factory
+from database.session import async_session_factory, init_db
 from database.repositories.conversation_repo import ConversationRepository
 from database.repositories.memory_repo import MemoryRepository
 
@@ -148,6 +148,7 @@ async def test_database_persistence_across_sessions():
     """
     Test 12: Restarting backend session does not destroy conversations or memory.
     """
+    await init_db()
     user_id = "persistent-user"
 
     # Session 1: write
