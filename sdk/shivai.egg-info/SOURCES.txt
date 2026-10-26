@@ -1,0 +1,16 @@
+pyproject.toml
+setup.py
+shivai/__init__.py
+shivai/client.py
+shivai/exceptions.py
+shivai/types.py
+shivai.egg-info/PKG-INFO
+shivai.egg-info/SOURCES.txt
+shivai.egg-info/dependency_links.txt
+shivai.egg-info/requires.txt
+shivai.egg-info/top_level.txt
+shivai/resources/__init__.py
+shivai/resources/chat.py
+shivai/resources/conversations.py
+shivai/resources/memory.py
+shivai/resources/models.py
