@@ -1001,6 +1001,41 @@ print(f'Calculated sum of squares: {sum(squares)}')</textarea>
           <p class="text-sm text-slate-400 mt-1">Instant generation sandboxes for 2D Design, 3D Assets, Browser Games, and Full-Stack Web Applications.</p>
         </div>
 
+        
+        <!-- Studio Quick Launcher Pills -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+          <a href="/studios/codespaces" target="_blank" class="p-4 rounded-xl glass border border-indigo-500/30 hover:border-indigo-500/60 bg-indigo-950/20 flex items-center justify-between group transition">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-lg bg-indigo-600/30 text-indigo-400 flex items-center justify-center font-bold">💻</div>
+              <div>
+                <div class="font-bold text-white text-sm group-hover:text-indigo-400 transition">SHIV Codespaces</div>
+                <div class="text-[11px] text-slate-400">Cloud Web IDE, Terminal & Previews</div>
+              </div>
+            </div>
+            <span class="text-xs text-indigo-400 group-hover:translate-x-0.5 transition">↗</span>
+          </a>
+          <a href="/studios/3d" target="_blank" class="p-4 rounded-xl glass border border-purple-500/30 hover:border-purple-500/60 bg-purple-950/20 flex items-center justify-between group transition">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-lg bg-purple-600/30 text-purple-400 flex items-center justify-center font-bold">🧊</div>
+              <div>
+                <div class="font-bold text-white text-sm group-hover:text-purple-400 transition">SHIV 3D Studio</div>
+                <div class="text-[11px] text-slate-400">Three.js WebGL & Procedural GLB</div>
+              </div>
+            </div>
+            <span class="text-xs text-purple-400 group-hover:translate-x-0.5 transition">↗</span>
+          </a>
+          <a href="/studios/editor" target="_blank" class="p-4 rounded-xl glass border border-pink-500/30 hover:border-pink-500/60 bg-pink-950/20 flex items-center justify-between group transition">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-lg bg-pink-600/30 text-pink-400 flex items-center justify-center font-bold">🎬</div>
+              <div>
+                <div class="font-bold text-white text-sm group-hover:text-pink-400 transition">SHIV Creative Editor</div>
+                <div class="text-[11px] text-slate-400">Multi-Track Video & Media Timeline</div>
+              </div>
+            </div>
+            <span class="text-xs text-pink-400 group-hover:translate-x-0.5 transition">↗</span>
+          </a>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- 1. 2D Design Studio -->
           <div class="p-6 rounded-2xl glass border border-slate-800/80 space-y-4">

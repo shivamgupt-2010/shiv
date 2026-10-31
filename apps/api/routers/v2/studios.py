@@ -20,6 +20,8 @@ from core.games.generator import game_generator
 from core.games.validator import game_validator, GameValidationResult
 from core.app_builder.packager import app_packager
 from core.agents.software_engineer import software_engineer, DiagnosisReport, PatchResult
+from core.threed.ui import THREED_STUDIO_UI_HTML
+from core.video.ui import VIDEO_EDITOR_UI_HTML
 from security.shiv_auth import get_current_user, UserContext
 
 router = APIRouter(prefix="/v2/studios", tags=["Creative & Engineering Studios"])
@@ -259,3 +261,16 @@ def apply_code_patch(
         target_chunk=req.target_chunk,
         replacement_chunk=req.replacement_chunk,
     )
+
+
+@router.get("/threed/ui", response_class=HTMLResponse)
+async def get_threed_studio_ui():
+    """Renders the standalone interactive SHIV 3D Studio and WebGL Viewport."""
+    return HTMLResponse(content=THREED_STUDIO_UI_HTML)
+
+
+@router.get("/editor/ui", response_class=HTMLResponse)
+@router.get("/video/ui", response_class=HTMLResponse)
+async def get_video_editor_ui():
+    """Renders the standalone interactive SHIV Creative Media and Video Editor."""
+    return HTMLResponse(content=VIDEO_EDITOR_UI_HTML)

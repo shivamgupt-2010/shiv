@@ -9,6 +9,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from apps.api.dependencies import get_current_user_context, UserContext, rate_limit_middleware_check
+from core.codespaces.ui import CODESPACES_UI_HTML
 from core.codespaces.manager import (
     codespace_manager,
     CodespaceMetadata,
@@ -183,6 +184,12 @@ async def execute_terminal_command(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/ui", response_class=HTMLResponse)
+async def get_codespaces_ui():
+    """Renders the standalone interactive SHIV Codespaces Web IDE."""
+    return HTMLResponse(content=CODESPACES_UI_HTML)
+
+
 @router.get("/{codespace_id}/preview", response_class=Response)
 @router.get("/{codespace_id}/preview/{subpath:path}", response_class=Response)
 async def preview_codespace_app(
@@ -214,3 +221,5 @@ async def download_codespace_bundle(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+

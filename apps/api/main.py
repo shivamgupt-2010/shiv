@@ -1,9 +1,12 @@
+from core.codespaces.ui import CODESPACES_UI_HTML
+from core.threed.ui import THREED_STUDIO_UI_HTML
+from core.video.ui import VIDEO_EDITOR_UI_HTML
 """
 ShivAI FastAPI Main Application Entry Point.
 """
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, status
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from config.settings import settings
 from monitoring.logging import configure_logging
@@ -154,3 +157,18 @@ app.include_router(v2_studios_router)
 app.include_router(v2_devices_router)
 app.include_router(v2_automation_router)
 app.include_router(v2_codespaces_router)
+
+
+@app.get("/studios/codespaces", response_class=HTMLResponse, include_in_schema=False)
+async def studios_codespaces_root():
+    return HTMLResponse(content=CODESPACES_UI_HTML)
+
+
+@app.get("/studios/3d", response_class=HTMLResponse, include_in_schema=False)
+async def studios_3d_root():
+    return HTMLResponse(content=THREED_STUDIO_UI_HTML)
+
+
+@app.get("/studios/editor", response_class=HTMLResponse, include_in_schema=False)
+async def studios_editor_root():
+    return HTMLResponse(content=VIDEO_EDITOR_UI_HTML)

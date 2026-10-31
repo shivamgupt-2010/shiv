@@ -19,8 +19,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
-from core.tools.sandbox import code_sandbox
-from core.agents.software_engineer import software_engineer
 
 logger = logging.getLogger("shivai.codespaces")
 
@@ -263,6 +261,7 @@ def get_items():
         return True
 
     def patch_file(self, codespace_id: str, file_path: str, target_chunk: str, replacement_chunk: str) -> bool:
+        from core.agents.software_engineer import software_engineer
         """Surgically replaces a chunk of code in an existing file."""
         original = self.read_file(codespace_id, file_path)
         res = software_engineer.apply_targeted_patch(original, target_chunk, replacement_chunk)
@@ -301,6 +300,7 @@ def get_items():
         import asyncio
         start_time = time.perf_counter()
 
+        from core.tools.sandbox import code_sandbox
         env = code_sandbox._get_sanitized_env()
         # Add workspace to path
         env["WORKSPACE_DIR"] = str(ws_path)
@@ -393,3 +393,5 @@ def get_items():
 
 # Global CodespaceManager instance
 codespace_manager = CodespaceManager()
+
+codespaces_manager = codespace_manager
