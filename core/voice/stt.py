@@ -95,6 +95,10 @@ class GroqWhisperSTT:
                         logger.warning(f"Groq STT key rate-limited (HTTP 429). Rotating to next key...")
                         await key_pool_manager.record_key_rate_limit("groq", key, cooldown_seconds=30.0)
                         continue
+                    elif resp.status_code == 413:
+                        logger.error(f"Groq STT failed: Audio payload exceeds 25MB limit (HTTP 413). {resp.text}")
+                        last_error = "Audio payload exceeds Groq 25MB limit."
+                        break
                     else:
                         logger.warning(f"Groq STT failed with {resp.status_code}: {resp.text}")
                         last_error = resp.text

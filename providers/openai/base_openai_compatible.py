@@ -96,7 +96,22 @@ class BaseOpenAICompatibleProvider(AIProvider):
                     status_code=status,
                     raw_error=error_body,
                 )
-            elif status == 400 and ("context" in body_lower or "token" in body_lower or "length" in body_lower):
+            elif status == 413 or (
+                status in (400, 422)
+                and any(
+                    kw in body_lower
+                    for kw in [
+                        "context",
+                        "token",
+                        "length",
+                        "too large",
+                        "payload too large",
+                        "request entity too large",
+                        "exceeds maximum limit",
+                        "tpm",
+                    ]
+                )
+            ):
                 return ProviderError(
                     category=ErrorCategory.CONTEXT_TOO_LARGE,
                     message=f"Context window exceeded for {self.provider_name}",

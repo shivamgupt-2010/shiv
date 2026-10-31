@@ -68,3 +68,20 @@ def test_context_too_large_classification():
 
     normalized = provider.normalize_error(http_error)
     assert normalized.category == ErrorCategory.CONTEXT_TOO_LARGE
+
+
+def test_groq_413_payload_too_large_classification():
+    from providers.groq.adapter import GroqProvider
+    provider = GroqProvider(api_key="gsk-test")
+    request = httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions")
+    response = httpx.Response(
+        status_code=413,
+        text='{"error": {"message": "Request too large for model on tokens per minute (TPM): Limit 6000, Requested 14137", "code": "rate_limit_exceeded"}}',
+        request=request,
+    )
+    http_error = httpx.HTTPStatusError("Payload Too Large", request=request, response=response)
+
+    normalized = provider.normalize_error(http_error)
+    assert normalized.category == ErrorCategory.CONTEXT_TOO_LARGE
+    assert normalized.status_code == 413
+    assert normalized.provider == "groq"
