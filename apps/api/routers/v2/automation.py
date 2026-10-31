@@ -303,3 +303,76 @@ async def trigger_schedule_now(
         return get_automation_scheduler().trigger_now(workflow_id)
     except KeyError:
         raise HTTPException(status_code=404, detail="Scheduled workflow not found")
+
+
+
+# --- Dynamic Multi-Step Workflow Engine Endpoints ---
+from core.automation.workflow_engine import (
+    workflow_engine,
+    WorkflowDefinition,
+    WorkflowExecutionReport,
+)
+
+
+class CreateWorkflowPayload(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    description: str = ""
+    steps: List[Dict[str, Any]] = Field(..., min_length=1)
+
+
+@router.post("/workflows", response_model=WorkflowDefinition)
+async def create_dynamic_workflow(
+    payload: CreateWorkflowPayload,
+    current_user: Any = Depends(get_current_user),
+) -> WorkflowDefinition:
+    """Creates a dynamic DAG-based multi-step workflow."""
+    return workflow_engine.create_workflow(
+        name=payload.name,
+        steps=payload.steps,
+        description=payload.description,
+    )
+
+
+@router.get("/workflows", response_model=List[WorkflowDefinition])
+async def list_dynamic_workflows(
+    current_user: Any = Depends(get_current_user),
+) -> List[WorkflowDefinition]:
+    """Lists all authored dynamic multi-step workflows."""
+    return workflow_engine.list_workflows()
+
+
+@router.get("/workflows/{workflow_id}", response_model=WorkflowDefinition)
+async def get_dynamic_workflow(
+    workflow_id: str,
+    current_user: Any = Depends(get_current_user),
+) -> WorkflowDefinition:
+    wf = workflow_engine.get_workflow(workflow_id)
+    if not wf:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    return wf
+
+
+@router.post("/workflows/{workflow_id}/execute", response_model=WorkflowExecutionReport)
+async def execute_dynamic_workflow(
+    workflow_id: str,
+    inputs: Optional[Dict[str, Any]] = None,
+    current_user: Any = Depends(get_current_user),
+) -> WorkflowExecutionReport:
+    """Executes the steps in the dynamic workflow in topological order."""
+    try:
+        return await workflow_engine.execute_workflow(workflow_id, initial_inputs=inputs)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Workflow execution failed: {str(e)}")
+
+
+@router.delete("/workflows/{workflow_id}")
+async def delete_dynamic_workflow(
+    workflow_id: str,
+    current_user: Any = Depends(get_current_user),
+) -> Dict[str, Any]:
+    success = workflow_engine.delete_workflow(workflow_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Workflow not found")
+    return {"status": "deleted", "workflow_id": workflow_id}

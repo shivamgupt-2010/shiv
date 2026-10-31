@@ -17,6 +17,7 @@ from apps.api.routers.v2.orchestration import router as v2_orchestration_router
 from apps.api.routers.v2.studios import router as v2_studios_router
 from apps.api.routers.v2.devices import router as v2_devices_router
 from apps.api.routers.v2.automation import router as v2_automation_router
+from apps.api.routers.v2.codespaces import router as v2_codespaces_router
 
 __all__ = [
     "v2_chat_router",
@@ -35,5 +36,5 @@ __all__ = [
     "v2_studios_router",
     "v2_devices_router",
     "v2_automation_router",
+    "v2_codespaces_router",
 ]
-

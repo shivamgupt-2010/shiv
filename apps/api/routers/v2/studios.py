@@ -143,8 +143,33 @@ def create_3d_asset(
         "triangle_count": asset["triangle_count"],
         "obj_size": len(asset["obj_content"]),
         "glb_size": len(asset["glb_bytes"]),
+        "preview_url": f"/v2/studios/threed/{asset['asset_id']}/preview",
+        "glb_url": f"/v2/studios/threed/{asset['asset_id']}/glb",
         "html_preview": html_preview,
     }
+
+
+@router.get("/threed/{asset_id}/preview", response_class=HTMLResponse)
+def get_3d_preview(asset_id: str):
+    """Renders standalone Three.js 3D viewport for the asset."""
+    try:
+        html = threed_studio.generate_html_preview(asset_id)
+        return HTMLResponse(content=html)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="3D asset not found")
+
+
+@router.get("/threed/{asset_id}/glb")
+def download_3d_glb(asset_id: str):
+    """Downloads GLB binary file of the 3D asset."""
+    scene = threed_studio._scenes.get(asset_id)
+    if not scene or "glb_bytes" not in scene:
+        raise HTTPException(status_code=404, detail="3D asset or GLB not found")
+    return Response(
+        content=scene["glb_bytes"],
+        media_type="model/gltf-binary",
+        headers={"Content-Disposition": f"attachment; filename={asset_id}.glb"},
+    )
 
 
 # --- 4. Game Development Studio Requests ---

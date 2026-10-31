@@ -55,6 +55,28 @@ class ShivAIOrchestrator:
             content=user_message,
         )
 
+        # Check for autonomous studio creation intent (Codespaces, 3D Studio, Video/Image, Agent/Workflow Forge)
+        from core.orchestration.studio_router import StudioIntentRouter
+        studio_output = StudioIntentRouter.match_and_execute(user_message, user_id=user_id)
+        if studio_output:
+            await self.conv_repo.add_message(
+                conversation_id=conversation.id,
+                role="assistant",
+                content=studio_output,
+                model_provider="shiv_studio",
+                model_name="studio_autonomous_engine",
+            )
+            from providers.base import UsageInfo, ModelIdentifier
+            return UnifiedResponse(
+                request_id=req_id,
+                assistant="shivai",
+                content=studio_output,
+                model=ModelIdentifier(provider="shivai", model="studio_autonomous_engine"),
+                usage=UsageInfo(input_tokens=10, output_tokens=len(studio_output) // 4, total_tokens=10 + len(studio_output) // 4),
+                finish_reason="stop",
+                latency_ms=15.0,
+            )
+
         # 3. Task & Capability analysis
         task_type, auto_caps = TaskClassifier.classify(user_message)
         agent_key = agent_name or task_type

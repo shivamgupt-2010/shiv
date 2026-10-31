@@ -5,6 +5,13 @@ from typing import Dict, List, Optional, Any
 from core.tools.base import Tool, ToolDefinition
 from core.tools.permissions import ToolPermissionGate, ToolPermissionError
 from core.tools.builtin_tools import CalculatorTool, DateTimeTool, WebSearchTool, SandboxedPythonTool
+from core.tools.creative_tools import (
+    AgentForgeTool,
+    WorkflowForgeTool,
+    CodespaceTool,
+    ShivEditorTool,
+    Shiv3DTool,
+)
 
 
 class ToolRegistry:
@@ -13,10 +20,18 @@ class ToolRegistry:
         self._register_defaults()
 
     def _register_defaults(self):
+        # Builtin Utility Tools
         self.register(CalculatorTool())
         self.register(DateTimeTool())
         self.register(WebSearchTool())
         self.register(SandboxedPythonTool())
+
+        # Autonomous Creative Studio Tools
+        self.register(AgentForgeTool())
+        self.register(WorkflowForgeTool())
+        self.register(CodespaceTool())
+        self.register(ShivEditorTool())
+        self.register(Shiv3DTool())
 
     def register(self, tool: Tool) -> None:
         self._tools[tool.name] = tool

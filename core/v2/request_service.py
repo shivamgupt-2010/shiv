@@ -131,6 +131,29 @@ class V2RequestService:
         else:
             conversation_id = conversation_id or f"conv_{int(time.time())}"
 
+        # Autonomous Studio Execution Interceptor (Codespaces, 3D Studio, Video/Image, Agents/Workflows)
+        from core.orchestration.studio_router import StudioIntentRouter
+        studio_output = StudioIntentRouter.match_and_execute(request.message, user_id=user_id)
+        if studio_output:
+            if self.conv_repo:
+                await self.conv_repo.add_message(
+                    conversation_id=conversation_id,
+                    role="assistant",
+                    content=studio_output,
+                    model_provider="shiv_studio",
+                    model_name="studio_autonomous_engine",
+                )
+                await self.session.commit()
+            return V2ChatResponse(
+                response=studio_output,
+                conversation_id=conversation_id,
+                provider="shivai",
+                model="studio_autonomous_engine",
+                request_id=request_id,
+                usage=V2UsageInfo(input_tokens=10, output_tokens=len(studio_output) // 4, total_tokens=10 + len(studio_output) // 4),
+                latency_ms=10.0,
+            )
+
         # 2. Assemble hierarchical memory context & language directives
         lang_directive = language_engine.get_system_prompt_instruction(request.message)
         system_instruction = f"You are ShivAI, an intelligent, resilient, autonomous AI assistant.\n{lang_directive}"
@@ -283,6 +306,29 @@ class V2RequestService:
             )
         else:
             conversation_id = conversation_id or f"conv_{int(time.time())}"
+
+        # Autonomous Studio Execution Interceptor (Streaming)
+        from core.orchestration.studio_router import StudioIntentRouter
+        studio_output = StudioIntentRouter.match_and_execute(request.message, user_id=user_id)
+        if studio_output:
+            if self.conv_repo:
+                await self.conv_repo.add_message(
+                    conversation_id=conversation_id,
+                    role="assistant",
+                    content=studio_output,
+                    model_provider="shiv_studio",
+                    model_name="studio_autonomous_engine",
+                )
+                await self.session.commit()
+            from providers.base import ModelIdentifier
+            yield UnifiedStreamChunk(
+                request_id=request_id,
+                assistant="shivai",
+                delta=studio_output,
+                finish_reason="stop",
+                model=ModelIdentifier(provider="shivai", model="studio_autonomous_engine"),
+            )
+            return
 
         # 2. Build context with language directives
         lang_directive = language_engine.get_system_prompt_instruction(request.message)
