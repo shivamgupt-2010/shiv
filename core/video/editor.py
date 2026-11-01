@@ -1,3 +1,4 @@
+from pathlib import Path
 """
 ShivAI Video Studio: Video Processing and Timeline Render Engine.
 Provides deterministic media inspection, trimming, concatenation, subtitles,
@@ -22,7 +23,22 @@ class VideoEditor:
 
     def __init__(self):
         self._projects: Dict[str, VideoTimelineProject] = {}
-        self._has_ffmpeg = shutil.which("ffmpeg") is not None
+        self._ffmpeg_bin = self._resolve_ffmpeg()
+        self._has_ffmpeg = self._ffmpeg_bin is not None
+
+    def _resolve_ffmpeg(self) -> Optional[str]:
+        # 1. Check local project .tools
+        local_tool = Path("F:/SHIV/shivai/.tools/ffmpeg/bin/ffmpeg.exe")
+        if local_tool.exists():
+            return str(local_tool)
+        # 2. Check imageio_ffmpeg
+        try:
+            import imageio_ffmpeg
+            return imageio_ffmpeg.get_ffmpeg_exe()
+        except Exception:
+            pass
+        # 3. Check PATH
+        return shutil.which("ffmpeg")
 
     def create_timeline(
         self,
@@ -210,5 +226,136 @@ class VideoEditor:
             metadata={"type": "video_timeline_manifest", "duration": manifest["total_duration"]},
         )
 
+
+
+    async def render_binary_video(
+        self,
+        input_video_path: str,
+        output_video_path: str,
+        remove_background: bool = True,
+        bg_color_hex: str = "0x994972",
+        target_bg_hex: str = "0x070b14",
+        voiceover_text: Optional[str] = None,
+        voice_model: str = "en-US-ChristopherNeural",
+        text_overlay: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Executes binary video processing with FFmpeg:
+        - Removes/replaces video background
+        - Synthesizes and synchronizes neural voiceover
+        - Adds subtitle/caption overlay
+        - Encodes production-ready MP4 (H.264 + AAC)
+        """
+        ffmpeg = self._resolve_ffmpeg()
+        if not ffmpeg:
+            raise RuntimeError("FFmpeg executable not available for binary video rendering.")
+
+        if not os.path.exists(input_video_path):
+            raise FileNotFoundError(f"Source video not found: {input_video_path}")
+
+        # 1. Probe input duration and resolution
+        probe_cmd = [ffmpeg, "-i", input_video_path]
+        probe_res = subprocess.run(probe_cmd, stderr=subprocess.PIPE, text=True)
+        dur = 10.0
+        w, h = 1920, 1080
+        for l in probe_res.stderr.splitlines():
+            if "Duration:" in l:
+                try:
+                    parts = l.split("Duration:")[1].split(",")[0].strip().split(":")
+                    dur = float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
+                except Exception:
+                    pass
+            if "Video:" in l:
+                import re
+                m = re.search(r"(\d{3,4})x(\d{3,4})", l)
+                if m:
+                    w, h = int(m.group(1)), int(m.group(2))
+
+        # 2. Generate voiceover if requested
+        temp_audio = None
+        timed_audio = None
+        if voiceover_text:
+            import edge_tts
+            import uuid
+            t_id = uuid.uuid4().hex[:8]
+            temp_audio = f"F:/SHIV/shivai/storage/temp_voice_{t_id}.mp3"
+            timed_audio = f"F:/SHIV/shivai/storage/temp_voice_{t_id}_timed.m4a"
+            communicate = edge_tts.Communicate(voiceover_text, voice_model, rate="-10%", pitch="-5Hz")
+            await communicate.save(temp_audio)
+
+            # Pad audio with delay and echo to match video duration
+            audio_pad_cmd = [
+                ffmpeg, "-y", "-i", temp_audio,
+                "-af", f"adelay=1200|1200,aecho=0.8:0.85:60:0.35,apad=whole_dur={dur:.2f}",
+                "-c:a", "aac", "-b:a", "192k",
+                timed_audio,
+            ]
+            subprocess.run(audio_pad_cmd, check=True, capture_output=True)
+
+        # 3. Assemble Filtergraph
+        filters = []
+        if remove_background:
+            # Key out background color and composite over target dark background
+            filters.append(f"[0:v]colorkey={bg_color_hex}:0.32:0.18[keyed]")
+            filters.append(f"color=s={w}x{h}:c={target_bg_hex}:d={dur:.2f}[bg]")
+            filters.append("[bg][keyed]overlay=shortest=1[keyed_out]")
+            current_v = "[keyed_out]"
+        else:
+            current_v = "[0:v]"
+
+        if text_overlay:
+            filters.append(
+                f"{current_v}drawtext=text='{text_overlay}':fontcolor=white@0.9:fontsize=72:"
+                f"x=(w-text_w)/2:y=h-240:enable='between(t,1.2,{dur-1.5:.1f})'[outv]"
+            )
+            final_v = "[outv]"
+        else:
+            final_v = current_v
+
+        # 4. Construct command
+        cmd = [ffmpeg, "-y", "-i", input_video_path]
+        if timed_audio:
+            cmd.extend(["-i", timed_audio])
+
+        if filters:
+            cmd.extend(["-filter_complex", ";".join(filters), "-map", final_v])
+        else:
+            cmd.extend(["-map", "0:v"])
+
+        if timed_audio:
+            cmd.extend(["-map", "1:a"])
+
+        cmd.extend([
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-crf", "20",
+            "-c:a", "aac",
+            "-b:a", "192k",
+            "-shortest",
+            output_video_path,
+        ])
+
+        # Execute render
+        proc = subprocess.run(cmd, capture_output=True, text=True)
+        if proc.returncode != 0:
+            raise RuntimeError(f"FFmpeg render failed: {proc.stderr[-500:]}")
+
+        # Cleanup temp audio
+        if temp_audio and os.path.exists(temp_audio):
+            os.remove(temp_audio)
+        if timed_audio and os.path.exists(timed_audio):
+            os.remove(timed_audio)
+
+        out_size = os.path.getsize(output_video_path)
+        return {
+            "success": True,
+            "output_path": output_video_path,
+            "duration": dur,
+            "resolution": f"{w}x{h}",
+            "size_bytes": out_size,
+            "size_mb": round(out_size / (1024 * 1024), 2),
+            "voiceover": voiceover_text,
+            "background_removed": remove_background,
+        }
 
 video_editor = VideoEditor()

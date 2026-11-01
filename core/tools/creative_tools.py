@@ -201,10 +201,14 @@ class ShivEditorTool(Tool):
                 description="Creates high-resolution FLUX images, video timelines, and multimedia assets in SHIV Editor.",
                 required_permission="creative",
                 parameters=[
-                    ToolParameter(name="action", type="string", description="'generate_image' or 'create_video'"),
-                    ToolParameter(name="prompt", type="string", description="Visual prompt describing the image or scene"),
+                    ToolParameter(name="action", type="string", description="'generate_image', 'create_video', or 'edit_video_file'"),
+                    ToolParameter(name="prompt", type="string", description="Visual prompt describing the image or scene", required=False),
                     ToolParameter(name="title", type="string", description="Title of the video project", required=False),
                     ToolParameter(name="aspect_ratio", type="string", description="'16:9', '9:16', or '1:1'", required=False),
+                    ToolParameter(name="input_path", type="string", description="Path to input video file for editing", required=False),
+                    ToolParameter(name="output_path", type="string", description="Path for edited output video", required=False),
+                    ToolParameter(name="voiceover_text", type="string", description="Voiceover text to synthesize and add", required=False),
+                    ToolParameter(name="remove_background", type="boolean", description="Whether to remove/replace background", required=False),
                 ],
             )
         )
@@ -217,6 +221,22 @@ class ShivEditorTool(Tool):
         aspect_ratio: str = "16:9",
         **kwargs,
     ) -> Dict[str, Any]:
+        if action == "edit_video_file":
+            input_path = kwargs.get("input_path") or kwargs.get("video_path")
+            if not input_path:
+                return {"success": False, "error": "input_path is required for edit_video_file"}
+            output_path = kwargs.get("output_path") or input_path.replace(".mp4", "_edited.mp4")
+            remove_bg = kwargs.get("remove_background", True)
+            voiceover = kwargs.get("voiceover_text") or "Time waits for nothing."
+            text_overlay = kwargs.get("text_overlay") or "TIME WAITS FOR NOTHING"
+            return await video_editor.render_binary_video(
+                input_video_path=input_path,
+                output_video_path=output_path,
+                remove_background=remove_bg,
+                voiceover_text=voiceover,
+                text_overlay=text_overlay,
+            )
+
         import urllib.parse
         encoded = urllib.parse.quote(prompt.strip())
         dim_map = {"16:9": (1280, 720), "9:16": (720, 1280), "1:1": (1024, 1024)}
