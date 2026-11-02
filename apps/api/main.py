@@ -13,6 +13,7 @@ from monitoring.logging import configure_logging
 from database.session import init_db
 from apps.api.middleware.request_id import RequestIDMiddleware
 from apps.api.middleware.security_headers import SecurityHeadersMiddleware
+from apps.api.routers.auth import router as auth_router
 from apps.api.routers import (
     chat_router,
     conversations_router,
@@ -133,6 +134,7 @@ async def handle_generic_exception(request: Request, exc: Exception):
 
 
 # Include V1 Routers (Preserved for full backward compatibility)
+app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(conversations_router)
 app.include_router(memory_router)
@@ -172,3 +174,23 @@ async def studios_3d_root():
 @app.get("/studios/editor", response_class=HTMLResponse, include_in_schema=False)
 async def studios_editor_root():
     return HTMLResponse(content=VIDEO_EDITOR_UI_HTML)
+
+
+@app.get('/download/shiv-media-editor.apk', include_in_schema=False)
+async def download_media_editor_apk():
+    import os
+    from fastapi.responses import FileResponse
+    apk_path = os.path.join(settings.BASE_DIR, 'data', 'downloads', 'shiv-media-editor.apk')
+    if os.path.exists(apk_path):
+        return FileResponse(apk_path, media_type='application/vnd.android.package-archive', filename='shiv-media-editor.apk')
+    raise HTTPException(status_code=404, detail='Media Editor APK not found')
+
+
+@app.get('/download/shiv-codespaces.apk', include_in_schema=False)
+async def download_codespaces_apk():
+    import os
+    from fastapi.responses import FileResponse
+    apk_path = os.path.join(settings.BASE_DIR, 'data', 'downloads', 'shiv-codespaces.apk')
+    if os.path.exists(apk_path):
+        return FileResponse(apk_path, media_type='application/vnd.android.package-archive', filename='shiv-codespaces.apk')
+    raise HTTPException(status_code=404, detail='Codespaces APK not found')
